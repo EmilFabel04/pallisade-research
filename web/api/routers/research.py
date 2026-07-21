@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import uuid
 from typing import Any
 
@@ -80,6 +81,7 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     history: list[ChatMessage] = []
+    deep: bool = False
 
 
 # Login is disabled (see web/api/deps.py): get_current_user resolves to a stable
@@ -109,6 +111,9 @@ def chat(req: ChatRequest, db: Session = Depends(get_db),
         sdk=_llm(),
         plan_model=settings.query_rewrite_model,
         narrate_model=settings.chat_model,
+        depth="deep" if req.deep else "shallow",
+        web_enabled=bool(os.environ.get("WEB_SEARCH_API_KEY")),
+        web_model=settings.chat_model,
     )
     q = turn["query"]
     ans = _serialize(turn["answer"])

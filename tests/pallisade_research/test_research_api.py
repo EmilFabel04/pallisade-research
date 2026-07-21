@@ -152,3 +152,35 @@ def test_chat_surfaces_resolver_sources_unavailable(monkeypatch):
     r = client.post("/api/research/chat", json={"message": "how is AAPL"})
     assert r.status_code == 200
     assert "BrokenSK" in r.json()["answer"]["sources_unavailable"]
+
+
+def test_chat_passes_deep_flag_to_converse(monkeypatch):
+    # Task 7: the `deep` request flag must reach converse() as depth="deep", and
+    # the web-research loop must be gated on WEB_SEARCH_API_KEY being set in the
+    # environment (no per-user key) rather than always on/off.
+    from pallisade_connections.resolver import ResolvedSources
+    from pallisade_research.models import CitedAnswer, ResearchQuery
+    from pallisade_research.sources.registry import ClientConfig
+
+    resolved = ResolvedSources(
+        client_config=ClientConfig(client_id="org-1", enabled_sources=frozenset()),
+        registry={},
+    )
+
+    seen = {}
+
+    def fake_converse(history, message, **kw):
+        seen.update(kw)
+        q = ResearchQuery(question=message, ticker=None, capabilities=())
+        ans = CitedAnswer(question=message, claims=(), records=(), gaps=(),
+                          sources_used=(), sources_unavailable=())
+        return {"assistant": "ok", "query": q, "answer": ans}
+
+    client = _client(monkeypatch, resolved)
+    monkeypatch.setattr(research, "converse", fake_converse)
+    monkeypatch.setenv("WEB_SEARCH_API_KEY", "k")
+
+    r = client.post("/api/research/chat", json={"message": "news?", "history": [], "deep": True})
+    assert r.status_code == 200
+    assert seen["depth"] == "deep"
+    assert seen["web_enabled"] is True
