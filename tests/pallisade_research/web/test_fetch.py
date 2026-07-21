@@ -1,6 +1,9 @@
 from datetime import date
 
-from pallisade_research.web.fetch import FetchedDoc, _is_safe_url, fetch_url
+import pytest
+
+from pallisade_research.web.fetch import FetchedDoc, _SafeRedirectHandler, _is_safe_url, fetch_url
+from urllib.request import Request
 
 _HTML = """
 <html><head><title>Naspers H1 Results</title>
@@ -79,3 +82,15 @@ def test_is_safe_url_rejects_private():
 
 def test_is_safe_url_allows_public_https():
     assert _is_safe_url("https://example.com/article") is True
+
+
+def test_default_get_blocks_unsafe_redirect():
+    handler = _SafeRedirectHandler()
+    req = Request("https://example.com/")
+
+    with pytest.raises(ValueError):
+        handler.redirect_request(req, None, 302, "Found", {}, "http://169.254.169.254/")
+
+    # A safe redirect target must not raise (base handler returns a Request or None).
+    result = handler.redirect_request(req, None, 302, "Found", {}, "https://example.com/next")
+    assert result is None or isinstance(result, Request)
