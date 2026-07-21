@@ -79,3 +79,47 @@ def test_loop_no_results_used_false():
     sdk = _ScriptedSDK([_Msg([_Block(type="text", text="nothing to add")], "end_turn")])
     res = research(_q(), sdk=sdk, model="m", search=lambda *a, **k: [], fetch=lambda *a, **k: None)
     assert res.used is False and res.records == ()
+
+
+def test_loop_enforces_shallow_search_round_budget():
+    # SDK keeps asking to search; shallow cap is 1 search round.
+    searches_req = [_Msg([_tool_use(f"s{i}", "web_search", {"query": "x"})], "tool_use") for i in range(3)]
+    sdk = _ScriptedSDK([*searches_req, _Msg([_Block(type="text", text="done")], "end_turn")])
+    calls = {"n": 0}
+
+    def search(query, **k):
+        calls["n"] += 1
+        return [SearchHit("N", "https://ex.com/a", "s")]
+
+    res = research(_q(), sdk=sdk, model="m", depth="shallow",
+                   search=search, fetch=lambda *a, **k: None)
+    assert calls["n"] <= 1
+
+
+def test_loop_deep_budget_allows_more_fetches():
+    # Deep budget allows up to 8 fetches, unlike shallow's cap of 3.
+    fetches = [_Msg([_tool_use(f"t{i}", "fetch_url", {"url": f"https://ex.com/{i}"})], "tool_use") for i in range(5)]
+    sdk = _ScriptedSDK([_Msg([_tool_use("s", "web_search", {"query": "x"})], "tool_use"), *fetches,
+                        _Msg([_Block(type="text", text="done")], "end_turn")])
+    calls = {"n": 0}
+
+    def fetch(url, **k):
+        calls["n"] += 1
+        return FetchedDoc(url=url, title="", published=None, passages=("p",))
+
+    res = research(_q(), sdk=sdk, model="m", depth="deep",
+                   search=lambda *a, **k: [SearchHit("", "https://ex.com/0", "")], fetch=fetch)
+    assert calls["n"] == 5
+
+
+def test_loop_malformed_query_returns_unavailable():
+    class _Malformed:
+        question = "Q"
+        ticker = None
+
+        @property
+        def capabilities(self):
+            raise TypeError("boom")
+
+    res = research(_Malformed(), sdk=_ScriptedSDK([]), model="m")
+    assert res == WebResearchResult(records=(), used=False, unavailable=True)

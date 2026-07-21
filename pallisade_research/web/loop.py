@@ -66,22 +66,23 @@ def research(
     fetch=_fetch_url,
 ) -> WebResearchResult:
     max_rounds, max_fetches = _BUDGETS.get(depth, _BUDGETS["shallow"])
-    cap = _capability_for(query)
     records: list[Record] = []
     searches = 0
     fetches = 0
-    max_iters = 2 * (max_rounds + max_fetches)
-
-    convo = [{
-        "role": "user",
-        "content": (
-            f"Question: {query.question}\n"
-            f"Ticker: {query.ticker or '(none)'}\n"
-            "Research the web and gather sources; do not answer."
-        ),
-    }]
 
     try:
+        cap = _capability_for(query)
+        max_iters = 2 * (max_rounds + max_fetches)
+
+        convo = [{
+            "role": "user",
+            "content": (
+                f"Question: {query.question}\n"
+                f"Ticker: {query.ticker or '(none)'}\n"
+                "Research the web and gather sources; do not answer."
+            ),
+        }]
+
         for _ in range(max_iters):
             msg = sdk.messages.create(
                 model=model, max_tokens=1024, system=_SYSTEM, tools=_TOOLS, messages=convo,
