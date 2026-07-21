@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from pallisade_connections.resolver import resolve_for_org
+from pallisade_core.research_history import service as history_service
 from pallisade_core.settings import get_settings
 from pallisade_core.users.models import User
 from pallisade_research.chat import converse
@@ -116,3 +118,48 @@ def chat(req: ChatRequest, db: Session = Depends(get_db),
         "query": {"ticker": q.ticker, "capabilities": list(q.capabilities), "standalone": q.question},
         "answer": ans,
     }
+
+
+# ─── conversation history (per-user, cross-device) ───────────────────────────
+class SaveConversationRequest(BaseModel):
+    id: uuid.UUID | None = None
+    title: str
+    messages: list[Any] = []
+
+
+def _summary(row) -> dict:
+    return {"id": str(row.id), "title": row.title, "updated_at": row.updated_at.isoformat()}
+
+
+@router.post("/research/conversations")
+def save_conversation(req: SaveConversationRequest, db: Session = Depends(get_db),
+                      user: User = Depends(get_current_user)) -> dict:
+    row = history_service.upsert_conversation(
+        db, user=user, conversation_id=req.id, title=req.title or "Untitled", messages=req.messages,
+    )
+    db.commit()
+    return _summary(row)
+
+
+@router.get("/research/conversations")
+def list_conversations(db: Session = Depends(get_db),
+                       user: User = Depends(get_current_user)) -> list[dict]:
+    return [_summary(r) for r in history_service.list_conversations(db, user=user)]
+
+
+@router.get("/research/conversations/{conversation_id}")
+def get_conversation(conversation_id: uuid.UUID, db: Session = Depends(get_db),
+                     user: User = Depends(get_current_user)) -> dict:
+    row = history_service.get_conversation(db, user=user, conversation_id=conversation_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="conversation not found")
+    return {**_summary(row), "messages": row.payload}
+
+
+@router.delete("/research/conversations/{conversation_id}", status_code=204)
+def delete_conversation(conversation_id: uuid.UUID, db: Session = Depends(get_db),
+                        user: User = Depends(get_current_user)) -> Response:
+    if not history_service.delete_conversation(db, user=user, conversation_id=conversation_id):
+        raise HTTPException(status_code=404, detail="conversation not found")
+    db.commit()
+    return Response(status_code=204)

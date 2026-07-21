@@ -44,6 +44,24 @@ export interface ChatHistoryItem {
   content: string;
 }
 
+/** A rendered chat turn, persisted verbatim so reopening restores the dossier. */
+export interface StoredMessage {
+  id: number;
+  role: "user" | "assistant";
+  content: string;
+  answer?: CitedAnswer;
+}
+
+export interface ConversationSummary {
+  id: string;
+  title: string;
+  updated_at: string;
+}
+
+export interface ConversationDetail extends ConversationSummary {
+  messages: StoredMessage[];
+}
+
 export interface ChatQuery {
   ticker: string | null;
   capabilities: string[];
@@ -77,5 +95,36 @@ export const research = {
     });
     if (!r.ok) throw new Error(`research/chat: ${r.status} ${r.statusText}`);
     return (await r.json()) as ChatTurn;
+  },
+
+  async listConversations(): Promise<ConversationSummary[]> {
+    const r = await fetch(`${API_BASE}/api/research/conversations`, { credentials: "include" });
+    if (!r.ok) throw new Error(`conversations: ${r.status}`);
+    return (await r.json()) as ConversationSummary[];
+  },
+
+  async getConversation(id: string): Promise<ConversationDetail> {
+    const r = await fetch(`${API_BASE}/api/research/conversations/${id}`, { credentials: "include" });
+    if (!r.ok) throw new Error(`conversation: ${r.status}`);
+    return (await r.json()) as ConversationDetail;
+  },
+
+  async saveConversation(input: { id?: string | null; title: string; messages: StoredMessage[] }): Promise<ConversationSummary> {
+    const r = await fetch(`${API_BASE}/api/research/conversations`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ id: input.id ?? null, title: input.title, messages: input.messages }),
+    });
+    if (!r.ok) throw new Error(`save conversation: ${r.status}`);
+    return (await r.json()) as ConversationSummary;
+  },
+
+  async deleteConversation(id: string): Promise<void> {
+    const r = await fetch(`${API_BASE}/api/research/conversations/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (!r.ok && r.status !== 404) throw new Error(`delete conversation: ${r.status}`);
   },
 };

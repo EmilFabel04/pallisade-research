@@ -6,11 +6,11 @@ import { useRevealedText } from "@/lib/useRevealedText";
 import { ThinkingSequence } from "./_ui/ThinkingSequence";
 import { SERIF, inlineSegments, stripBlockMarkdown } from "@/lib/research-format";
 import { Artifact } from "@/app/_ui/research/Artifact";
-import { Sources } from "@/app/_ui/research/Sources";
+import { History } from "@/app/_ui/research/History";
 import { saveArtefact } from "@/lib/artefacts";
 import { toast } from "@/app/_ui";
 
-type View = "chat" | "sources";
+type View = "chat" | "history";
 
 interface Msg {
   id: number;
@@ -80,6 +80,7 @@ export default function ResearchDashboard() {
   const [pending, setPending] = useState(false);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+  const [convId, setConvId] = useState<string | null>(null);
   const idRef = useRef(0);
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -87,6 +88,50 @@ export default function ResearchDashboard() {
     const q = new URLSearchParams(window.location.search).get("q");
     if (q) setInput(q);
   }, []);
+
+  // Auto-save the conversation whenever a completed answer turn lands: create it
+  // on the first turn (capturing the returned id), update it on every turn after.
+  useEffect(() => {
+    if (pending) return;
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant" || !last.answer) return;
+    const title = (messages.find((m) => m.role === "user")?.content ?? "Research").slice(0, 200);
+    let cancelled = false;
+    research
+      .saveConversation({ id: convId, title, messages })
+      .then((s) => {
+        if (!cancelled && !convId) setConvId(s.id);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, pending]);
+
+  function newChat() {
+    setMessages([]);
+    setConvId(null);
+    setActiveId(null);
+    setSavedIds(new Set());
+    idRef.current = 0;
+    setView("chat");
+  }
+
+  async function openConversation(id: string) {
+    try {
+      const conv = await research.getConversation(id);
+      const msgs = conv.messages as Msg[];
+      setMessages(msgs);
+      idRef.current = msgs.reduce((mx, m) => Math.max(mx, m.id), 0);
+      setConvId(conv.id);
+      const lastAnswered = [...msgs].reverse().find((m) => m.role === "assistant" && m.answer);
+      setActiveId(lastAnswered ? lastAnswered.id : null);
+      setView("chat");
+    } catch {
+      toast.error("Could not open that conversation");
+    }
+  }
 
   const activeAnswer = messages.find((m) => m.id === activeId)?.answer ?? null;
   const lastId = messages.length ? messages[messages.length - 1].id : null;
@@ -123,13 +168,13 @@ export default function ResearchDashboard() {
       {/* ─── segmented control header ─── */}
       <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-4 py-2">
         <SegBtn active={view === "chat"} onClick={() => setView("chat")}>Chat</SegBtn>
-        <SegBtn active={view === "sources"} onClick={() => setView("sources")}>Sources</SegBtn>
+        <SegBtn active={view === "history"} onClick={() => setView("history")}>History</SegBtn>
       </div>
 
       {/* ─── body ─── */}
-      {view === "sources" ? (
+      {view === "history" ? (
         <div className="flex-1 overflow-y-auto p-8">
-          <Sources />
+          <History currentId={convId} onOpen={openConversation} onNew={newChat} />
         </div>
       ) : (
         <div className="flex min-h-0 min-w-0 flex-1">

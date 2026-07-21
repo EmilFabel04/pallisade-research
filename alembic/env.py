@@ -17,6 +17,7 @@ import pallisade_core.documents.models  # noqa: F401
 import pallisade_core.chat.models  # noqa: F401
 import pallisade_core.watchlist.models  # noqa: F401
 import pallisade_core.memo_checks.models  # noqa: F401
+import pallisade_core.research_history.models  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:
