@@ -1,0 +1,47 @@
+name: pallisade-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      pallisade-db:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: pallisade
+          POSTGRES_PASSWORD: pallisade
+          POSTGRES_DB: pallisade
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U pallisade"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=10
+    env:
+      PALLISADE_DATABASE_URL: postgresql+psycopg://pallisade:pallisade@localhost:5432/pallisade
+      PALLISADE_SESSION_SECRET: ci-secret-aaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      PALLISADE_STORAGE_SIGNING_KEY: ci-key-bbbbbbbbbbbbbbbbbbbbbbbbbbbb
+      PALLISADE_STORAGE_BACKEND: local
+      PALLISADE_STORAGE_ROOT: ./var/storage
+      PALLISADE_ENV: dev
+      PALLISADE_VOYAGE_API_KEY: ci-fake-voyage
+      PALLISADE_ANTHROPIC_API_KEY: ci-fake-anthropic
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Run alembic
+        run: alembic upgrade head
+      - name: Run pytest
+        run: pytest -ra

@@ -1,0 +1,64 @@
+from tradingagents.agents.utils.agent_utils import (
+    get_house_style_instruction,
+    get_language_instruction,
+)
+
+
+def create_conservative_debator(llm):
+    def conservative_node(state) -> dict:
+        risk_debate_state = state["risk_debate_state"]
+        history = risk_debate_state.get("history", "")
+        conservative_history = risk_debate_state.get("conservative_history", "")
+
+        current_aggressive_response = risk_debate_state.get("current_aggressive_response", "")
+        current_neutral_response = risk_debate_state.get("current_neutral_response", "")
+
+        market_research_report = state["market_report"]
+        sentiment_report = state["sentiment_report"]
+        news_report = state["news_report"]
+        fundamentals_report = state["fundamentals_report"]
+
+        investment_view = state["investment_plan"]
+        pre_mortem = state["trader_investment_plan"]
+
+        prompt = f"""As the Conservative Risk Analyst on the investment committee, argue the risk-first, capital-preservation reading of the case. Weigh the Research Manager's investment view against the pre-mortem and the aggressive and neutral analysts, and make the evidence-based case for where the downside is under-appreciated — without ignoring genuine upside.
+
+Research Manager's investment view:
+{investment_view}
+
+Pre-mortem (red-team on the view):
+{pre_mortem}
+
+Respond directly to the aggressive and neutral analysts' points with data. Reports for reference:
+Market Research: {market_research_report}
+Social Sentiment: {sentiment_report}
+World Affairs: {news_report}
+Fundamentals: {fundamentals_report}
+Conversation so far: {history}
+Last aggressive argument: {current_aggressive_response}
+Last neutral argument: {current_neutral_response}
+If the others have not spoken yet, state your own reading from the reports.""" + get_house_style_instruction() + get_language_instruction()
+
+        response = llm.invoke(prompt)
+
+        argument = f"Conservative Analyst: {response.content}"
+
+        new_risk_debate_state = {
+            "history": history + "\n" + argument,
+            "aggressive_history": risk_debate_state.get("aggressive_history", ""),
+            "conservative_history": conservative_history + "\n" + argument,
+            "neutral_history": risk_debate_state.get("neutral_history", ""),
+            "latest_speaker": "Conservative",
+            "current_aggressive_response": risk_debate_state.get(
+                "current_aggressive_response", ""
+            ),
+            "current_conservative_response": argument,
+            "current_neutral_response": risk_debate_state.get(
+                "current_neutral_response", ""
+            ),
+            "count": risk_debate_state["count"] + 1,
+        }
+
+        return {"risk_debate_state": new_risk_debate_state}
+
+    return conservative_node

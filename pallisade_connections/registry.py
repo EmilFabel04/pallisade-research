@@ -1,0 +1,22 @@
+from __future__ import annotations
+
+from pallisade_connections.base import Connector
+from pallisade_connections.connectors.builtin import (
+    EODHDConnector, EODHDMarketsConnector, HoldingsConnector,
+    SmartkarmaConnector, WorldBankConnector, YFinanceConnector,
+)
+from pallisade_connections.connectors.mcp import McpConnector
+
+CONNECTOR_REGISTRY: dict[str, Connector] = {
+    "yfinance": YFinanceConnector(),
+    "eodhd": EODHDConnector(),
+    "eodhd_markets": EODHDMarketsConnector(),
+    "worldbank": WorldBankConnector(),
+    "holdings": HoldingsConnector(),
+    "smartkarma": SmartkarmaConnector(),
+    "mcp": McpConnector(),
+}
+
+
+def get_connector(type_id: str) -> Connector:
+    return CONNECTOR_REGISTRY[type_id]

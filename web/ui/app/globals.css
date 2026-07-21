@@ -1,0 +1,626 @@
+@import "tailwindcss";
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot,
+  .pallisade-skeleton,
+  [class*="animate-["] {
+    animation: none !important;
+  }
+}
+
+@theme {
+  --color-bg: #030303;
+  --color-surface: #080808;
+  --color-surface-2: #0a0a0a;
+  --color-border: #1a1a1a;
+  --color-surface-3: #101010;
+  --color-fg: #f5f5f5;
+  --color-fg-dim: #a0a0a0;
+  --color-fg-muted: #6b6b6b;
+  --color-accent: #8b0b10;
+  --color-accent-soft: rgba(139, 11, 16, 0.12);
+  --color-positive: #4ade80;
+  --color-negative: #f87171;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Pallisade brand shadow + mesh tokens */
+  --shadow-accent-soft: 0 8px 30px -10px rgba(139, 11, 16, 0.30);
+  --shadow-accent-strong: 0 18px 60px rgba(139, 11, 16, 0.45);
+  --radial-accent-page: radial-gradient(circle at 50% 0%, rgba(139, 11, 16, 0.12), transparent 60%);
+  --shadow-card: 0 1px 0 0 rgba(255,255,255,0.03) inset, 0 8px 24px -16px rgba(0,0,0,0.8);
+  --shadow-card-lg: 0 1px 0 0 rgba(255,255,255,0.04) inset, 0 24px 60px -24px rgba(0,0,0,0.9);
+
+  /* Hairline overlay — white-tinted on dark, dark-tinted on light */
+  --overlay-hairline: rgba(255, 255, 255, 0.02);
+}
+
+/* Light theme — overrides the dark @theme defaults. Toggled by ThemeProvider
+   adding `.light` to <html>. Print (@media print) overrides both regardless. */
+html.light {
+  --color-bg: #ffffff;
+  --color-surface: #f7f7f8;
+  --color-surface-2: #f2f2f4;
+  --color-surface-3: #e9e9ec;
+  --color-border: #e2e2e6;
+  --color-fg: #14110f;
+  --color-fg-dim: #44474d;
+  --color-fg-muted: #8a8f98;
+  --color-accent: #8b0b10;
+  --color-accent-soft: rgba(139, 11, 16, 0.08);
+  --color-positive: #15803d;
+  --color-negative: #b91c1c;
+
+  --shadow-accent-soft: 0 8px 30px -12px rgba(139, 11, 16, 0.20);
+  --shadow-accent-strong: 0 18px 60px rgba(139, 11, 16, 0.28);
+  --shadow-card: 0 1px 2px 0 rgba(16, 17, 20, 0.04), 0 8px 24px -18px rgba(16, 17, 20, 0.25);
+  --shadow-card-lg: 0 1px 3px 0 rgba(16, 17, 20, 0.06), 0 24px 60px -28px rgba(16, 17, 20, 0.30);
+
+  --overlay-hairline: rgba(16, 17, 20, 0.03);
+
+  --tone-ok-fg:   #15803d;
+  --tone-ok-bg:   rgba(21, 128, 61, 0.08);
+  --tone-ok-bd:   rgba(21, 128, 61, 0.30);
+
+  --tone-warn-fg: #b45309;
+  --tone-warn-bg: rgba(180, 83, 9, 0.08);
+  --tone-warn-bd: rgba(180, 83, 9, 0.30);
+
+  --tone-info-fg: #1d4ed8;
+  --tone-info-bg: rgba(29, 78, 216, 0.08);
+  --tone-info-bd: rgba(29, 78, 216, 0.30);
+
+  --tone-bull-fg: #15803d;
+  --tone-bull-bg: rgba(21, 128, 61, 0.08);
+  --tone-bull-bd: rgba(21, 128, 61, 0.30);
+
+  --tone-bear-fg: #b91c1c;
+  --tone-bear-bg: rgba(185, 28, 28, 0.08);
+  --tone-bear-bd: rgba(185, 28, 28, 0.30);
+}
+
+.hairline-top { box-shadow: var(--shadow-card); }
+
+html, body { background: var(--color-bg); color: var(--color-fg); }
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--color-accent-soft); color: var(--color-fg); }
+
+.font-mono { font-family: var(--font-mono); }
+
+/* subtle scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: #2a2a2a; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* prose tweaks for markdown */
+.prose-research h1,
+.prose-research h2,
+.prose-research h3 {
+  font-family: var(--font-mono);
+  letter-spacing: -0.01em;
+  color: var(--color-fg);
+  margin-top: 1.4em;
+  margin-bottom: 0.5em;
+}
+.prose-research h1 { font-size: 1.25rem; }
+.prose-research h2 { font-size: 1.05rem; }
+.prose-research h3 { font-size: 0.95rem; color: var(--color-fg-dim); }
+.prose-research p { color: var(--color-fg-dim); line-height: 1.65; margin: 0.6em 0; }
+.prose-research ul, .prose-research ol { color: var(--color-fg-dim); margin: 0.5em 0 0.5em 1.25em; }
+.prose-research li { margin: 0.2em 0; }
+.prose-research strong { color: var(--color-fg); font-weight: 600; }
+.prose-research code {
+  font-family: var(--font-mono);
+  background: var(--color-surface-2);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.875em;
+  color: var(--color-fg);
+}
+.prose-research hr { border-color: var(--color-border); margin: 1.5em 0; }
+.prose-research table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2em 0;
+  font-size: 0.8em;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+  table-layout: auto;
+}
+.prose-research thead { background: var(--color-surface-2); }
+.prose-research th, .prose-research td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+  /* Allow long cells to wrap rather than force the table wide */
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.prose-research th {
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.prose-research tbody tr:last-child td { border-bottom: 0; }
+.prose-research tbody tr:nth-child(even) { background: var(--overlay-hairline); }
+.prose-research tbody tr:hover { background: rgba(139, 11, 16, 0.04); }
+.prose-research td { color: var(--color-fg); }
+.prose-research td:first-child { color: var(--color-fg-dim); font-weight: 500; }
+/* Honour explicit alignment markers from GFM (|---:|, |:---:|) — but don't
+   blanket-right-align all non-first columns. Mixed-content tables (e.g.
+   Indicator / Value / Signal / Key Level) read best left-aligned with
+   tabular-nums keeping the numeric cells aligned column-wise. */
+.prose-research th[align="right"], .prose-research td[align="right"] { text-align: right; }
+.prose-research th[align="center"], .prose-research td[align="center"] { text-align: center; }
+/* Tabular numbers everywhere in the prose so inline R1.24bn / 17.6% align */
+.prose-research { font-variant-numeric: tabular-nums; }
+.prose-research blockquote {
+  border-left: 2px solid var(--color-accent);
+  padding-left: 12px;
+  color: var(--color-fg-dim);
+  margin: 0.8em 0;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes turnReveal {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes verdictReveal {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+:root {
+  --tone-ok-fg:    #6ee7a1;
+  --tone-ok-bg:    rgba(110, 231, 161, 0.08);
+  --tone-ok-bd:    rgba(110, 231, 161, 0.35);
+
+  --tone-warn-fg:  #f6c177;
+  --tone-warn-bg:  rgba(246, 193, 119, 0.08);
+  --tone-warn-bd:  rgba(246, 193, 119, 0.35);
+
+  --tone-info-fg:  #93c5fd;
+  --tone-info-bg:  rgba(147, 197, 253, 0.08);
+  --tone-info-bd:  rgba(147, 197, 253, 0.35);
+
+  --tone-bull-fg: #6ee7a1;
+  --tone-bull-bg: rgba(110, 231, 161, 0.08);
+  --tone-bull-bd: rgba(110, 231, 161, 0.35);
+
+  --tone-bear-fg: #f87171;
+  --tone-bear-bg: rgba(248, 113, 113, 0.08);
+  --tone-bear-bd: rgba(248, 113, 113, 0.35);
+}
+
+@keyframes pallisade-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+.pallisade-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-2) 0%,
+    rgba(255, 255, 255, 0.04) 50%,
+    var(--color-surface-2) 100%
+  );
+  background-size: 200% 100%;
+  animation: pallisade-shimmer 1.4s linear infinite;
+}
+
+/* --- Print stylesheet --------------------------------------------------- */
+/* Goal: produce a real research-dossier PDF, not a screenshot of the dark
+   app. Cover page + table of contents + per-section pages + colophon,
+   set in a serif body with mono labels, generous margins, and a running
+   header band on each interior page. */
+@media print {
+  @page {
+    margin: 16mm 14mm;
+    size: A4;
+  }
+  /* Strip the browser's first-page top margin a little so the cover page
+     emblem can sit higher. */
+  @page :first { margin-top: 0; }
+
+  :root {
+    --color-bg: #ffffff;
+    --color-surface: #ffffff;
+    --color-surface-2: #f7f5f0;     /* warm parchment */
+    --color-border: #cfc8bd;
+    --color-fg: #14110f;
+    --color-fg-dim: #3a342f;
+    --color-fg-muted: #6a625a;
+    --color-accent: #8b0b10;
+    --color-accent-soft: rgba(139, 11, 16, 0.08);
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #14110f !important;
+    /* Serif body for prose, mono kept for labels via the .font-mono /
+       --font-mono utility. */
+    font-family: "Source Serif Pro", "Source Serif 4", Georgia,
+                 "Hoefler Text", "Times New Roman", serif !important;
+    font-size: 10.5pt;
+    line-height: 1.55;
+  }
+
+  /* Visibility toggles. */
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+
+  /* Preserve brand color through the print pipeline. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  a { color: #8b0b10 !important; text-decoration: none !important; }
+  a[href^="http"]::after {
+    content: " ⟶ " attr(href);
+    font-family: var(--font-mono);
+    font-size: 0.75em;
+    color: #6a625a;
+  }
+
+  /* ---- Page layout primitives ---- */
+  .print-dossier { color: #14110f; }
+
+  .print-page {
+    page-break-after: always;
+    break-after: page;
+  }
+  .print-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  /* Running header band that sits at the top of every interior page. */
+  .print-section-band {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 8px;
+    margin-bottom: 16mm;
+    border-bottom: 0.75pt solid #cfc8bd;
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #6a625a;
+  }
+
+  /* ---- Cover page ---- */
+  .print-cover {
+    height: 257mm;            /* A4 257mm content - margins */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 28mm 6mm 0;
+  }
+  .print-cover-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .print-wordmark {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 11pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #14110f;
+  }
+  .print-emblem-mark {
+    color: #8b0b10;
+    font-size: 14pt;
+    line-height: 1;
+    transform: translateY(2px);
+  }
+  .print-cover-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #6a625a;
+  }
+  .print-cover-body { margin-top: 20mm; }
+  .print-cover-label {
+    font-family: var(--font-mono);
+    font-size: 9pt;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #6a625a;
+    margin-bottom: 4mm;
+  }
+  .print-cover-ticker {
+    font-family: Georgia, "Hoefler Text", "Source Serif Pro", serif;
+    font-weight: 600;
+    font-size: 64pt;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #14110f;
+    margin: 0;
+    /* Crimson underline accent */
+    padding-bottom: 6mm;
+    border-bottom: 2.5pt solid #8b0b10;
+    display: inline-block;
+  }
+  .print-cover-date {
+    margin-top: 6mm;
+    font-family: var(--font-mono);
+    font-size: 11pt;
+    letter-spacing: 0.04em;
+    color: #3a342f;
+  }
+  .print-cover-meta {
+    margin-top: 14mm;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 14mm;
+    row-gap: 4mm;
+    font-size: 10pt;
+  }
+  .print-cover-meta dt {
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #6a625a;
+    align-self: baseline;
+    white-space: nowrap;
+  }
+  .print-cover-meta dd {
+    margin: 0;
+    color: #14110f;
+  }
+  .print-mono { font-family: var(--font-mono) !important; }
+
+  .print-cover-foot {
+    border-top: 0.75pt solid #cfc8bd;
+    padding-top: 8mm;
+    font-size: 8.5pt;
+    line-height: 1.5;
+    color: #3a342f;
+  }
+  .print-cover-foot p { margin: 0 0 6mm; }
+  .print-cover-foot strong { color: #8b0b10; font-variant: small-caps; letter-spacing: 0.04em; }
+  .print-cover-foot-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 8pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #6a625a;
+  }
+
+  /* ---- Table of contents ---- */
+  .print-toc { padding: 0 6mm; }
+  .print-toc-title {
+    font-family: Georgia, "Source Serif Pro", serif;
+    font-weight: 600;
+    font-size: 26pt;
+    letter-spacing: -0.01em;
+    color: #14110f;
+    margin: 0 0 10mm;
+  }
+  .print-toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: toc;
+  }
+  .print-toc-list li {
+    display: grid;
+    grid-template-columns: 14mm 1fr auto;
+    align-items: baseline;
+    gap: 4mm;
+    padding: 3.5mm 0;
+    border-bottom: 0.5pt dotted #cfc8bd;
+    font-size: 11pt;
+  }
+  .print-toc-num {
+    font-family: var(--font-mono);
+    color: #8b0b10;
+    font-size: 9.5pt;
+    letter-spacing: 0.1em;
+  }
+  .print-toc-label { color: #14110f; }
+  .print-toc-tone {
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #6a625a;
+  }
+  .print-toc-leader { display: none; }   /* dotted bottom border carries the leader */
+
+  /* ---- Section pages ---- */
+  .print-section { padding: 0 4mm; }
+  .print-section-head {
+    display: grid;
+    grid-template-columns: 18mm 1fr;
+    align-items: baseline;
+    gap: 6mm;
+    margin-bottom: 8mm;
+    padding-bottom: 6mm;
+    border-bottom: 1.5pt solid #14110f;
+  }
+  .print-section-num {
+    font-family: Georgia, "Source Serif Pro", serif;
+    font-weight: 600;
+    font-size: 36pt;
+    line-height: 0.9;
+    color: #8b0b10;
+    letter-spacing: -0.02em;
+  }
+  .print-section-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #6a625a;
+  }
+  .print-section-title {
+    margin: 1mm 0 0;
+    font-family: Georgia, "Source Serif Pro", serif;
+    font-weight: 600;
+    font-size: 22pt;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: #14110f;
+  }
+
+  .print-internal-note {
+    margin: 0 0 6mm;
+    padding: 4mm 5mm;
+    border-left: 2pt solid #8b0b10;
+    background: rgba(139, 11, 16, 0.04);
+    font-size: 9.5pt;
+    color: #3a342f;
+  }
+  .print-internal-note strong { color: #8b0b10; }
+
+  /* ---- Prose typography in print ---- */
+  .print-prose, .prose-research {
+    font-family: "Source Serif Pro", "Source Serif 4", Georgia, serif !important;
+    font-size: 10.5pt !important;
+    line-height: 1.6 !important;
+    color: #14110f !important;
+  }
+  .prose-research p, .print-prose p {
+    color: #14110f !important;
+    margin: 0.55em 0;
+    /* Justify body for that print-publication feel. */
+    text-align: justify;
+    hyphens: auto;
+  }
+  .prose-research strong { color: #14110f !important; }
+  .prose-research h1, .prose-research h2, .prose-research h3 {
+    font-family: Georgia, "Source Serif Pro", serif !important;
+    color: #14110f !important;
+    letter-spacing: -0.005em;
+    margin-top: 8mm;
+  }
+  .prose-research h1 { font-size: 15pt; }
+  .prose-research h2 { font-size: 13pt; }
+  .prose-research h3 { font-size: 11.5pt; color: #3a342f !important; }
+  .prose-research ul, .prose-research ol {
+    color: #14110f !important;
+    padding-left: 5mm;
+  }
+  .prose-research blockquote {
+    border-left: 1.5pt solid #8b0b10 !important;
+    color: #3a342f !important;
+    font-style: italic;
+    margin: 4mm 0;
+    padding-left: 4mm;
+  }
+  .prose-research code {
+    background: #f0ece4 !important;
+    color: #14110f !important;
+    font-size: 0.88em;
+  }
+  .prose-research hr { border-color: #cfc8bd !important; }
+
+  /* Tables: simplify for paper. No hover, no zebra; thin rules only. */
+  .prose-research table {
+    border: 0.75pt solid #cfc8bd !important;
+    background: #ffffff !important;
+    font-size: 9.5pt !important;
+  }
+  .prose-research thead { background: #f0ece4 !important; }
+  .prose-research th {
+    color: #3a342f !important;
+    font-family: var(--font-mono) !important;
+    font-weight: 600;
+    border-bottom: 0.75pt solid #cfc8bd !important;
+  }
+  .prose-research td {
+    color: #14110f !important;
+    border-bottom: 0.4pt solid #e2dccf !important;
+  }
+  .prose-research tbody tr:nth-child(even) { background: transparent !important; }
+  .prose-research tbody tr:hover { background: transparent !important; }
+  .prose-research td:first-child { color: #14110f !important; }
+
+  /* Keep these together where possible. */
+  .prose-research h1,
+  .prose-research h2,
+  .prose-research h3,
+  .prose-research table,
+  .print-internal-note,
+  .print-section-head { page-break-inside: avoid; break-inside: avoid; }
+  .prose-research h1, .prose-research h2, .prose-research h3 {
+    page-break-after: avoid; break-after: avoid;
+  }
+  .prose-research p, .prose-research li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* ---- Colophon ---- */
+  .print-colophon { padding: 0 4mm; }
+  .print-colophon-body {
+    margin: 6mm 0 10mm;
+    font-size: 10pt;
+    line-height: 1.6;
+    color: #3a342f;
+    max-width: 130mm;
+  }
+  .print-colophon-fineprint {
+    margin-top: 14mm;
+    font-family: var(--font-mono);
+    font-size: 8pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #6a625a;
+  }
+
+  .print-empty {
+    font-style: italic;
+    color: #6a625a;
+    margin: 20mm 0;
+    text-align: center;
+  }
+
+  /* Reset the Shell's screen padding so print margins come purely from
+     @page. Without this, the shell's px-6 py-8 + max-w-7xl mx-auto add
+     extra inset that compresses the cover page. */
+  body > div,
+  body > div > div { max-width: none !important; padding: 0 !important; }
+}
+
+.print-only { display: none; }

@@ -1,0 +1,7 @@
+node_modules
+.next
+.env.local
+.DS_Store
+*.log
+# Override root Python gitignore — lib/ is valid for the Next.js UI
+!lib/
