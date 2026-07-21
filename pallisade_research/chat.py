@@ -20,7 +20,7 @@ from datetime import date
 from typing import Any
 
 from pallisade_research.citations import tiered_sources_line
-from pallisade_research.engine import answer as engine_answer
+from pallisade_research.engine import gather_structured, ground
 from pallisade_research.models import CitedAnswer, ResearchQuery
 from pallisade_research.planner import plan as deterministic_plan
 from pallisade_research.sources.base import (
@@ -29,6 +29,7 @@ from pallisade_research.sources.base import (
 )
 from pallisade_research.sources.registry import ClientConfig
 from pallisade_research.sources.base import ResearchSource
+from pallisade_research.web.loop import research as web_research
 
 PLAN_TOOL = {
     "name": "plan_research",
@@ -178,6 +179,9 @@ def converse(
     sdk: Any | None = None,
     plan_model: str,
     narrate_model: str,
+    depth: str = "shallow",
+    web_enabled: bool = False,
+    web_model: str | None = None,
 ) -> dict:
     """Run one conversational turn. Returns {assistant, query, answer}.
 
@@ -194,8 +198,23 @@ def converse(
     else:
         query = deterministic_plan(message, known_tickers)
 
-    # 2. grounded retrieval (always deterministic — the facts)
-    answer = engine_answer(query, config, registry)
+    # 2a. structured retrieval (deterministic — the facts)
+    records, used, unavailable = gather_structured(query, config, registry)
+
+    # 2b. autonomous web-research loop (only Records escape it)
+    if sdk is not None and web_enabled:
+        try:
+            web = web_research(query, sdk=sdk, model=web_model or narrate_model, depth=depth)
+            records.extend(web.records)
+            if web.used:
+                used.append("web")
+            if web.unavailable:
+                unavailable.append("web")
+        except Exception:
+            unavailable.append("web")
+
+    # 2c. ground everything through one path
+    answer = ground(records, query, used=used, unavailable=unavailable)
 
     # 3. narrate (LLM constrained to findings, templated fallback)
     if sdk is not None:
