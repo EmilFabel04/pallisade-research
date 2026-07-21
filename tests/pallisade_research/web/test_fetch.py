@@ -1,6 +1,6 @@
 from datetime import date
 
-from pallisade_research.web.fetch import FetchedDoc, fetch_url
+from pallisade_research.web.fetch import FetchedDoc, _is_safe_url, fetch_url
 
 _HTML = """
 <html><head><title>Naspers H1 Results</title>
@@ -59,3 +59,23 @@ def test_fetch_url_date_falls_through_nonISO_meta_to_time():
     </body></html>"""
     doc = fetch_url("https://ex.com/e", http_get=lambda u: html)
     assert doc.published == date(2026, 5, 9)
+
+
+def test_is_safe_url_rejects_non_http_schemes():
+    assert _is_safe_url("file:///etc/passwd") is False
+    assert _is_safe_url("ftp://x/y") is False
+
+
+def test_is_safe_url_rejects_loopback_and_metadata():
+    assert _is_safe_url("http://127.0.0.1/") is False
+    assert _is_safe_url("http://169.254.169.254/latest/meta-data/") is False
+    assert _is_safe_url("http://localhost/") is False
+
+
+def test_is_safe_url_rejects_private():
+    assert _is_safe_url("http://10.0.0.5/") is False
+    assert _is_safe_url("http://192.168.1.1/") is False
+
+
+def test_is_safe_url_allows_public_https():
+    assert _is_safe_url("https://example.com/article") is True

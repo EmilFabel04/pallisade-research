@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import ipaddress
 import re
+import socket
 from dataclasses import dataclass
 from datetime import date
 from typing import Callable
+from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from bs4 import BeautifulSoup
@@ -11,6 +14,7 @@ from bs4 import BeautifulSoup
 _SNIPPET_LEN = 280
 _MAX_PASSAGES = 12
 _ISO = re.compile(r"(\d{4}-\d{2}-\d{2})")
+_ALLOWED_SCHEMES = {"http", "https"}
 
 
 @dataclass(frozen=True)
@@ -21,7 +25,59 @@ class FetchedDoc:
     passages: tuple[str, ...]
 
 
+def _is_unsafe_address(ip: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
+    return (
+        ip.is_loopback
+        or ip.is_private
+        or ip.is_link_local
+        or ip.is_reserved
+        or ip.is_unspecified
+        or ip.is_multicast
+    )
+
+
+def _is_safe_url(url: str) -> bool:
+    """Reject URLs that could be used for SSRF or local-file reads.
+
+    Only http/https to a resolvable, publicly-routable host are allowed.
+    Untrusted (model-chosen, prompt-injectable) URLs must pass this check
+    before any network access happens.
+    """
+    try:
+        parsed = urlparse(url)
+    except ValueError:
+        return False
+
+    if parsed.scheme.lower() not in _ALLOWED_SCHEMES:
+        return False
+
+    host = parsed.hostname
+    if not host:
+        return False
+
+    try:
+        addrinfo = socket.getaddrinfo(host, None)
+    except (socket.gaierror, socket.herror, UnicodeError, OSError):
+        return False
+
+    if not addrinfo:
+        return False
+
+    for family, _, _, _, sockaddr in addrinfo:
+        addr = sockaddr[0]
+        try:
+            ip = ipaddress.ip_address(addr)
+        except ValueError:
+            return False
+        if _is_unsafe_address(ip):
+            return False
+
+    return True
+
+
 def _default_get(url: str) -> str:
+    if not _is_safe_url(url):
+        raise ValueError(f"unsafe url: {url}")
     req = Request(url, headers={"User-Agent": "pallisade-research/1.0"})
     with urlopen(req, timeout=20) as resp:  # noqa: S310 (user-provided URL, best-effort fetch)
         return resp.read().decode("utf-8", "replace")
