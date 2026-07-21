@@ -81,6 +81,7 @@ export default function ResearchDashboard() {
   const [activeId, setActiveId] = useState<number | null>(null);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
   const [convId, setConvId] = useState<string | null>(null);
+  const [deep, setDeep] = useState(false);
   const idRef = useRef(0);
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -149,7 +150,7 @@ export default function ResearchDashboard() {
     setInput("");
     setPending(true);
     try {
-      const turn = await research.chat(q, history);
+      const turn = await research.chat(q, history, deep);
       const aId = ++idRef.current;
       setMessages((m) => [...m, { id: aId, role: "assistant", content: turn.assistant, answer: turn.answer }]);
       setActiveId(aId);
@@ -169,6 +170,19 @@ export default function ResearchDashboard() {
       <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-4 py-2">
         <SegBtn active={view === "chat"} onClick={() => setView("chat")}>Chat</SegBtn>
         <SegBtn active={view === "history"} onClick={() => setView("history")}>History</SegBtn>
+        <button
+          type="button"
+          onClick={() => setDeep((d) => !d)}
+          aria-pressed={deep}
+          className={`ml-auto rounded-full px-3 py-1 text-[11px] font-mono uppercase tracking-[0.15em] transition ${
+            deep
+              ? "bg-[var(--color-accent)] text-white"
+              : "border border-[var(--color-border)] text-[var(--color-fg-muted)]"
+          }`}
+          title="Deep dive runs a longer, multi-round web search"
+        >
+          Deep dive
+        </button>
       </div>
 
       {/* ─── body ─── */}

@@ -86,12 +86,12 @@ export const research = {
     return (await r.json()) as CitedAnswer;
   },
 
-  async chat(message: string, history: ChatHistoryItem[]): Promise<ChatTurn> {
+  async chat(message: string, history: ChatHistoryItem[], deep = false): Promise<ChatTurn> {
     const r = await fetch(`${API_BASE}/api/research/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ message, history }),
+      body: JSON.stringify({ message, history, deep }),
     });
     if (!r.ok) throw new Error(`research/chat: ${r.status} ${r.statusText}`);
     return (await r.json()) as ChatTurn;
