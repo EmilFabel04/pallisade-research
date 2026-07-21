@@ -119,7 +119,7 @@ export default function ResearchDashboard() {
   }
 
   return (
-    <div className="flex min-h-[78vh] flex-col overflow-hidden rounded-[16px] border border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div className="flex h-[78vh] flex-col overflow-hidden rounded-[16px] border border-[var(--color-border)] bg-[var(--color-surface)]">
       {/* ─── segmented control header ─── */}
       <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-4 py-2">
         <SegBtn active={view === "chat"} onClick={() => setView("chat")}>Chat</SegBtn>
@@ -132,9 +132,9 @@ export default function ResearchDashboard() {
           <Sources />
         </div>
       ) : (
-        <div className="flex min-w-0 flex-1">
+        <div className="flex min-h-0 min-w-0 flex-1">
           {/* chat column */}
-          <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <div className="flex-1 overflow-y-auto px-6 py-6">
               {messages.length === 0 ? (
                 <div className="mx-auto mt-10 max-w-xl text-center">
@@ -255,7 +255,7 @@ export default function ResearchDashboard() {
           </div>
 
           {/* artifact panel */}
-          <div className="hidden w-[42%] max-w-[560px] shrink-0 border-l border-[var(--color-border)] bg-[var(--color-bg)] lg:block">
+          <div className="hidden w-[42%] max-w-[560px] shrink-0 overflow-hidden border-l border-[var(--color-border)] bg-[var(--color-bg)] lg:block">
             {activeAnswer ? (
               <Artifact answer={activeAnswer} />
             ) : (

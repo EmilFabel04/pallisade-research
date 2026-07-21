@@ -18,7 +18,7 @@ def plan(question: str, known_tickers: frozenset[str]) -> ResearchQuery:
 
     Extracts the first recognized ticker from the question. Selects base capabilities
     based on keyword heuristics (conviction keywords → all; "news" → news+research;
-    default → fundamentals+research).
+    default → fundamentals only).
 
     Holdings is NOT auto-added: it is only requested via the conviction branch
     (an "is it worth holding" question already pulls all capabilities). Forcing
@@ -45,6 +45,9 @@ def plan(question: str, known_tickers: frozenset[str]) -> ResearchQuery:
     elif "news" in low:
         caps = (CAP_NEWS, CAP_RESEARCH)
     else:
-        caps = (CAP_FUNDAMENTALS, CAP_RESEARCH)
+        # A plain question gets fundamentals only — news/research are scoped to
+        # questions that explicitly ask about developments (the "news" branch),
+        # so ordinary overviews no longer pull a wall of off-topic articles.
+        caps = (CAP_FUNDAMENTALS,)
 
     return ResearchQuery(question=question, ticker=ticker, capabilities=caps)

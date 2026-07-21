@@ -2,9 +2,14 @@ from __future__ import annotations
 
 from pallisade_research.models import CitedAnswer, Record, ResearchQuery
 from pallisade_research.reconcile import reconcile
+from pallisade_research.relevance import rank_articles
 from pallisade_research.sources.base import ResearchSource
 from pallisade_research.sources.registry import ClientConfig, resolve_sources
 from pallisade_research.verify import verify
+
+# Max news/research articles surfaced per capability. The feeds return the latest
+# ~10 for the ticker; without this the dossier fills with off-topic headlines.
+_TOP_K_ARTICLES = 3
 
 
 def answer(
@@ -32,6 +37,11 @@ def answer(
             used.append(src.source)
             records.extend(kept)
             covered |= {r.capability for r in kept}
+
+    # Keep only the few articles that actually match the question — non-article
+    # records (fundamentals/markets/holdings) are untouched, and every capability
+    # that returned data keeps >=1 record so coverage is never lost.
+    records = rank_articles(records, query.question, top_k=_TOP_K_ARTICLES)
 
     claims = reconcile(records)
     kept_claims, gaps = verify(claims, records, query.capabilities)

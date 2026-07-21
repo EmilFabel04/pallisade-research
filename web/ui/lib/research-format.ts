@@ -27,6 +27,13 @@ function prettifyKey(key: string): string {
 
 export function formatRecord(rec: ResearchRecord): { label: string; display: string } {
   const { key, value } = rec;
+
+  // Article records are keyed news.0 / research.<id>, which prettify to
+  // meaningless labels like "0" or "Ab12cd". Give them a real label so the card
+  // reads as a headline, not a broken metric.
+  if (key.startsWith("news.")) return { label: "Headline", display: String(value) };
+  if (key.startsWith("research.")) return { label: "Research", display: String(value) };
+
   const label = KEY_LABELS[key] ?? prettifyKey(key);
 
   if (key.startsWith("holdings.") && value && typeof value === "object") {
@@ -39,6 +46,8 @@ export function formatRecord(rec: ResearchRecord): { label: string; display: str
     if (key.endsWith("marketCap") || key.endsWith("totalRevenue"))
       return { label, display: abbrevUsd(value) };
     if (key.endsWith("trailingPE")) return { label, display: `${value.toFixed(1)}×` };
+    if (key.endsWith("change_pct"))
+      return { label: "Change %", display: `${value >= 0 ? "+" : ""}${value.toFixed(2)}%` };
     if (key.toLowerCase().includes("margin"))
       return { label, display: `${(value * 100).toFixed(1)}%` };
     return { label, display: value.toLocaleString() };

@@ -26,7 +26,6 @@ from pallisade_research.planner import plan as deterministic_plan
 from pallisade_research.sources.base import (
     ALL_CAPABILITIES,
     CAP_FUNDAMENTALS,
-    CAP_RESEARCH,
 )
 from pallisade_research.sources.registry import ClientConfig
 from pallisade_research.sources.base import ResearchSource
@@ -83,8 +82,11 @@ _PLAN_SYSTEM = (
     "non-US listings (Standard Bank -> SBK.JO, Naspers -> NPN.JO, Tencent -> "
     "0700.HK, Toyota -> 7203.T; US names take no suffix), rewrite the question to stand alone, "
     "and choose the data capabilities to pull. Use 'fundamentals' for valuation/"
-    "financials, 'holdings' to surface the client's own position, 'research'/"
-    "'news'/'transcripts'/'estimates' for those. For broad 'is it worth holding' "
+    "financials and 'holdings' to surface the client's own position. Request "
+    "'news'/'research'/'transcripts'/'estimates' ONLY when the question is "
+    "specifically about recent developments, headlines, sentiment, or 'what's "
+    "happening' — do NOT request them for valuation, fundamentals, price, or "
+    "market-structure questions. For broad 'is it worth holding' conviction "
     "questions, request all capabilities. For a COUNTRY's economy use capability "
     "'macro' with entity=<country> and entity_type='country'. For FX pairs, crypto, "
     "or indices use 'markets' with entity=<pair/coin/index> and the matching "
@@ -96,7 +98,10 @@ _PLAN_SYSTEM = (
 # holdings is intentionally NOT a default: it is only requested when the
 # planner detects the user is asking about their own position, otherwise it
 # manufactures a permanent "no coverage for 'holdings'" gap on every query.
-_DEFAULT_CAPS = (CAP_FUNDAMENTALS, CAP_RESEARCH)
+# fundamentals only — news/research are pulled only when the question is about
+# developments (see planner prompt), so a plain overview no longer drags in a
+# wall of off-topic headlines.
+_DEFAULT_CAPS = (CAP_FUNDAMENTALS,)
 
 
 def _plan_with_llm(sdk: Any, model: str, history: list[dict], message: str) -> ResearchQuery:

@@ -11,11 +11,16 @@ KNOWN = frozenset({"AAPL", "NPN.JO"})
 
 
 def test_plan_extracts_ticker_and_default_caps():
-    """Base keyword rule: default question selects fundamentals+research only."""
+    """Base keyword rule: a plain overview selects fundamentals ONLY.
+
+    News/research are scoped to questions that ask about developments (the "news"
+    branch), so an ordinary overview must not drag in off-topic articles — nor
+    holdings, which would manufacture a coverage gap.
+    """
     q = plan("give me an overview of AAPL please", KNOWN)
     assert q.ticker == "AAPL"
-    # A plain overview must NOT pull holdings — that would manufacture a gap.
-    assert set(q.capabilities) == {CAP_FUNDAMENTALS, CAP_RESEARCH}
+    assert set(q.capabilities) == {CAP_FUNDAMENTALS}
+    assert CAP_RESEARCH not in q.capabilities
     assert CAP_HOLDINGS not in q.capabilities
 
 
