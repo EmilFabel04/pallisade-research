@@ -3,7 +3,7 @@ from __future__ import annotations
 from pallisade_connections.base import Connector
 from pallisade_connections.connectors.builtin import (
     EODHDConnector, EODHDMarketsConnector, HoldingsConnector,
-    SmartkarmaConnector, WorldBankConnector, YFinanceConnector,
+    SmartkarmaConnector, WebConnector, WorldBankConnector, YFinanceConnector,
 )
 from pallisade_connections.connectors.mcp import McpConnector
 
@@ -14,6 +14,7 @@ CONNECTOR_REGISTRY: dict[str, Connector] = {
     "worldbank": WorldBankConnector(),
     "holdings": HoldingsConnector(),
     "smartkarma": SmartkarmaConnector(),
+    "web": WebConnector(),
     "mcp": McpConnector(),
 }
 

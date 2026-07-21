@@ -96,3 +96,32 @@ class HoldingsConnector:
 
     def as_research_source(self, creds, config):
         return HoldingsSource(config.get("rows") or [])
+
+
+class _NoopWebSource:
+    """Placeholder so the web connector satisfies the source protocol.
+
+    The real web research runs as an LLM loop in the converse layer, not as a
+    fetch()-shaped source, so this never returns records."""
+
+    source = "web"
+    tier = 3
+    capabilities = frozenset({"news", "research", "estimates", "transcripts"})
+
+    def fetch(self, query):
+        return []
+
+
+class WebConnector:
+    type_id = "web"
+    requires_credentials = False
+    config_fields: list[FieldSpec] = []
+    capabilities = frozenset({"news", "research", "estimates", "transcripts"})
+
+    def test(self, creds, config) -> TestResult:
+        if not os.environ.get("WEB_SEARCH_API_KEY"):
+            return {"ok": False, "kind": "unsupported", "detail": "Set WEB_SEARCH_API_KEY in the platform environment."}
+        return {"ok": True, "kind": "ok", "detail": "Built-in grounded web research (shared search key)."}
+
+    def as_research_source(self, creds, config):
+        return _NoopWebSource()
