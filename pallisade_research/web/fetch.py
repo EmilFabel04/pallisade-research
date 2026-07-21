@@ -28,20 +28,29 @@ def _default_get(url: str) -> str:
 
 
 def _find_published(soup: BeautifulSoup) -> date | None:
+    # Try meta first
     meta = soup.find("meta", attrs={"property": "article:published_time"})
     raw = meta.get("content") if meta and meta.get("content") else None
-    if raw is None:
-        t = soup.find("time")
-        raw = t.get("datetime") if t and t.get("datetime") else None
-    if not raw:
-        return None
-    m = _ISO.search(raw)
-    if not m:
-        return None
-    try:
-        return date.fromisoformat(m.group(1))
-    except ValueError:
-        return None
+    if raw:
+        m = _ISO.search(raw)
+        if m:
+            try:
+                return date.fromisoformat(m.group(1))
+            except ValueError:
+                pass
+
+    # Fall back to <time> if meta didn't yield an ISO date
+    t = soup.find("time")
+    raw = t.get("datetime") if t and t.get("datetime") else None
+    if raw:
+        m = _ISO.search(raw)
+        if m:
+            try:
+                return date.fromisoformat(m.group(1))
+            except ValueError:
+                pass
+
+    return None
 
 
 def fetch_url(url: str, *, http_get: Callable[[str], str] | None = None) -> FetchedDoc:
@@ -54,11 +63,11 @@ def fetch_url(url: str, *, http_get: Callable[[str], str] | None = None) -> Fetc
         seen: set[str] = set()
         passages: list[str] = []
         for p in soup.find_all("p"):
-            text = p.get_text(" ", strip=True)
+            text = p.get_text(" ", strip=True)[:_SNIPPET_LEN]
             if not text or text in seen:
                 continue
             seen.add(text)
-            passages.append(text[:_SNIPPET_LEN])
+            passages.append(text)
             if len(passages) >= _MAX_PASSAGES:
                 break
         return FetchedDoc(url=url, title=title, published=published, passages=tuple(passages))

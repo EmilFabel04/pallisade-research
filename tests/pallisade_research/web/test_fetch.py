@@ -33,3 +33,29 @@ def test_fetch_url_error_returns_empty_passages():
         raise RuntimeError("timeout")
     doc = fetch_url("https://ex.com/c", http_get=boom)
     assert doc == FetchedDoc(url="https://ex.com/c", title="", published=None, passages=())
+
+
+def test_fetch_url_dedups_after_truncation():
+    # Two paragraphs with identical first 280 chars but different tails
+    prefix = "A" * 280
+    suffix1 = "B" * 50
+    suffix2 = "C" * 50
+    html = f"""<html><body>
+    <p>{prefix}{suffix1}</p>
+    <p>{prefix}{suffix2}</p>
+    </body></html>"""
+    doc = fetch_url("https://ex.com/d", http_get=lambda u: html)
+    # After truncation to 280 chars, both become identical, should deduplicate to 1
+    assert len(doc.passages) == 1
+    assert doc.passages[0] == prefix
+
+
+def test_fetch_url_date_falls_through_nonISO_meta_to_time():
+    # HTML with non-ISO meta content but valid <time datetime>
+    html = """<html><head>
+    <meta property="article:published_time" content="not-a-date">
+    </head><body>
+    <time datetime="2026-05-09T00:00:00Z">May 9, 2026</time>
+    </body></html>"""
+    doc = fetch_url("https://ex.com/e", http_get=lambda u: html)
+    assert doc.published == date(2026, 5, 9)
