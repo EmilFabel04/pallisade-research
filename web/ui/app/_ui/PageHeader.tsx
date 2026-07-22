@@ -1,5 +1,7 @@
 "use client";
 
+import { Eyebrow } from "./Eyebrow";
+
 export function PageHeader({
   eyebrow,
   title,
@@ -14,11 +16,7 @@ export function PageHeader({
   return (
     <div className="mb-8 flex items-end justify-between gap-4">
       <div>
-        {eyebrow && (
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-accent)]">
-            {eyebrow}
-          </p>
-        )}
+        {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
         <h1 className="mt-1 text-2xl font-medium tracking-tight text-[var(--color-fg)]">
           {title}
         </h1>

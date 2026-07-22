@@ -13,5 +13,6 @@ export { Toaster, toast } from "./Toast";
 export { CommandPalette, type CommandItem } from "./CommandPalette";
 export { ChatPanel, type ChatPanelProps } from "./ChatPanel";
 export { PageHeader } from "./PageHeader";
+export { Eyebrow } from "./Eyebrow";
 export { SectionCard } from "./SectionCard";
 export { Collapsible, type CollapsibleProps } from "./Collapsible";
