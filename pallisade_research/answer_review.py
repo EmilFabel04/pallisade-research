@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
+from typing import Callable
 
 from pallisade_research.models import CitedAnswer
 
@@ -119,3 +121,41 @@ def llm_objections(sdk, model: str, draft: str, answer: CitedAnswer) -> list[str
     payload = next((b.input for b in msg.content if getattr(b, "type", "") == "tool_use"), None)
     issues = (payload or {}).get("issues") or []
     return [f"{i.get('kind','unsupported')}: '{i.get('span','')}' — {i.get('why','')}" for i in issues]
+
+
+@dataclass(frozen=True)
+class ReviewedAnswer:
+    text: str
+    status: str  # "verified" | "regenerated" | "fallback"
+    objections: tuple[str, ...] = ()
+
+
+def review_answer(
+    sdk,
+    model: str,
+    answer: CitedAnswer,
+    draft: str,
+    *,
+    narrate: Callable[[str], str],
+    template: Callable[[], str],
+    max_retries: int = 2,
+) -> ReviewedAnswer:
+    current = draft
+    last_issues: list[str] = []
+    for attempt in range(max_retries + 1):
+        nums = unsupported_numbers(current, answer)
+        try:
+            objs = llm_objections(sdk, model, current, answer)
+        except Exception:  # noqa: BLE001 — reviewer unavailable → fail closed
+            return ReviewedAnswer(template(), "fallback", ())
+        issues = [f"number '{n}' is not in the findings" for n in nums] + objs
+        if not issues:
+            return ReviewedAnswer(current, "verified" if attempt == 0 else "regenerated", ())
+        last_issues = issues
+        if attempt == max_retries:
+            break
+        try:
+            current = narrate("; ".join(issues))
+        except Exception:  # noqa: BLE001 — regeneration failed → fall back
+            break
+    return ReviewedAnswer(template(), "fallback", tuple(last_issues))

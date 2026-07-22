@@ -1,6 +1,6 @@
 import pytest
 
-from pallisade_research.answer_review import unsupported_numbers, llm_objections
+from pallisade_research.answer_review import unsupported_numbers, llm_objections, ReviewedAnswer, review_answer
 from pallisade_research.models import CitedAnswer, Claim, Provenance, Record
 
 
@@ -105,3 +105,47 @@ def test_llm_objections_empty_when_clean():
 def test_llm_objections_raises_on_sdk_error():
     with pytest.raises(RuntimeError):
         llm_objections(_SDK(err=RuntimeError("down")), "m", "draft", _answer(("x: 1 [s]",)))
+
+
+# Review orchestrator tests
+
+
+def _clean_sdk():
+    return _SDK(msg=_Msg([_Block(type="tool_use", name="report_issues", input={"issues": []})]))
+
+
+def test_review_clean_draft_is_verified():
+    ans = _answer(("x: 5 [s]",), record_values=(5,))
+    calls = []
+    r = review_answer(_clean_sdk(), "m", ans, "The value is 5 [s].",
+                      narrate=lambda o: calls.append(o) or "x", template=lambda: "TEMPLATE")
+    assert r == ReviewedAnswer("The value is 5 [s].", "verified", ())
+    assert calls == []  # no regeneration
+
+
+def test_review_regenerates_then_passes():
+    ans = _answer(("x: 5 [s]",), record_values=(5,))
+    # first draft has a fabricated number → number check flags it; regen returns clean draft
+    def narrate(obj):
+        return "The value is 5 [s]."
+    r = review_answer(_clean_sdk(), "m", ans, "It jumped 99%.",
+                      narrate=narrate, template=lambda: "TEMPLATE")
+    assert r.status == "regenerated"
+    assert r.text == "The value is 5 [s]."
+
+
+def test_review_falls_back_after_retries():
+    ans = _answer(("x: 5 [s]",), record_values=(5,))
+    r = review_answer(_clean_sdk(), "m", ans, "It jumped 99%.",
+                      narrate=lambda o: "Still 99% wrong.", template=lambda: "TEMPLATE",
+                      max_retries=2)
+    assert r.status == "fallback"
+    assert r.text == "TEMPLATE"
+
+
+def test_review_fails_closed_when_verifier_errors():
+    ans = _answer(("x: 5 [s]",), record_values=(5,))
+    r = review_answer(_SDK(err=RuntimeError("down")), "m", ans, "The value is 5 [s].",
+                      narrate=lambda o: "x", template=lambda: "TEMPLATE")
+    assert r.status == "fallback"
+    assert r.text == "TEMPLATE"
