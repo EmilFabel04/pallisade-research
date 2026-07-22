@@ -16,3 +16,4 @@ export { PageHeader } from "./PageHeader";
 export { Eyebrow } from "./Eyebrow";
 export { SectionCard } from "./SectionCard";
 export { Collapsible, type CollapsibleProps } from "./Collapsible";
+export { Segmented, type SegmentedOption } from "./Segmented";
