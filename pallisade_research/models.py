@@ -16,12 +16,21 @@ class Provenance:
 
 
 @dataclass(frozen=True)
+class Derivation:
+    operation: str                 # key into COMPUTE_OPS, e.g. "yoy"
+    input_ids: tuple[str, ...]     # record ids this value was computed from
+    formula: str                   # human-readable, e.g. "YoY = (rev[2025]-rev[2024])/rev[2024]"
+
+
+@dataclass(frozen=True)
 class Record:
     id: str
     capability: str
     key: str
     value: Any
     provenance: Provenance
+    derivation: "Derivation | None" = None
+    evidence_only: bool = False
 
 
 @dataclass(frozen=True)
