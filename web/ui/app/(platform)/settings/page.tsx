@@ -1,9 +1,5 @@
-import { SettingsTabs } from "./_ui/SettingsTabs";
+import { redirect } from "next/navigation";
 
 export default function SettingsPage() {
-  return (
-    <div>
-      <SettingsTabs />
-    </div>
-  );
+  redirect("/settings/connectors");
 }
