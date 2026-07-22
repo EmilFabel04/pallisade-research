@@ -12,6 +12,7 @@ export interface SettingsSection {
 export const SETTINGS_SECTIONS: SettingsSection[] = [
   { href: "/settings/connectors", label: "Connectors", glyph: "⚙" },
   { href: "/settings/documents", label: "Documents", glyph: "◇" },
+  { href: "/settings/appearance", label: "Appearance", glyph: "◐" },
 ];
 
 export function SettingsRail() {
