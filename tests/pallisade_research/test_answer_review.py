@@ -1,4 +1,6 @@
-from pallisade_research.answer_review import unsupported_numbers
+import pytest
+
+from pallisade_research.answer_review import unsupported_numbers, llm_objections
 from pallisade_research.models import CitedAnswer, Claim, Provenance, Record
 
 
@@ -58,3 +60,48 @@ def test_leading_dot_decimal_is_matched():
     # Draft contains a different leading-dot number .9; it should be flagged as unsupported
     # (even though .5 is supported)
     assert unsupported_numbers("The coefficient was .9.", ans) == [".9"]
+
+
+# LLM objections tests with mocked SDK
+
+
+class _Block:
+    def __init__(self, **kw): self.__dict__.update(kw)
+
+
+class _Msg:
+    def __init__(self, content): self.content = content
+
+
+class _SDK:
+    def __init__(self, msg=None, err=None):
+        self._msg, self._err = msg, err
+        self.messages = self
+
+    def create(self, **kw):
+        if self._err:
+            raise self._err
+        return self._msg
+
+
+def test_llm_objections_parses_issues():
+    msg = _Msg([_Block(type="tool_use", name="report_issues",
+                       input={"issues": [
+                           {"span": "grew 12%", "kind": "unsupported", "why": "no such figure"},
+                           {"span": "per Bloomberg", "kind": "misattributed", "why": "source is yfinance"},
+                       ]})])
+    objs = llm_objections(_SDK(msg=msg), "m", "draft", _answer(("x: 1 [s]",)))
+    assert objs == [
+        "unsupported: 'grew 12%' — no such figure",
+        "misattributed: 'per Bloomberg' — source is yfinance",
+    ]
+
+
+def test_llm_objections_empty_when_clean():
+    msg = _Msg([_Block(type="tool_use", name="report_issues", input={"issues": []})])
+    assert llm_objections(_SDK(msg=msg), "m", "draft", _answer(("x: 1 [s]",))) == []
+
+
+def test_llm_objections_raises_on_sdk_error():
+    with pytest.raises(RuntimeError):
+        llm_objections(_SDK(err=RuntimeError("down")), "m", "draft", _answer(("x: 1 [s]",)))

@@ -63,3 +63,59 @@ def unsupported_numbers(draft: str, answer: CitedAnswer) -> list[str]:
             seen.add(n)
             out.append(n)
     return out
+
+
+_AUDIT_SYSTEM = (
+    "You are an auditor for an equity-research tool. Your ONLY job is to find "
+    "statements in the DRAFT that are NOT fully supported by the FINDINGS, or "
+    "that attribute a fact to the wrong source. Assume the writer may have "
+    "hallucinated. Judge only against the FINDINGS given — no outside knowledge. "
+    "List every unsupported or misattributed statement. If every statement is "
+    "fully supported, return an empty issues list. "
+    "Numeric DIRECTION is your responsibility: if the draft states a rise/gain/positive value but the finding is a decline/loss/negative value (or vice-versa), flag it as unsupported even when the magnitude matches."
+)
+
+_AUDIT_TOOL = {
+    "name": "report_issues",
+    "description": "Report statements in the draft not supported by the findings.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "issues": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "span": {"type": "string", "description": "the exact offending text"},
+                        "kind": {"type": "string", "enum": ["unsupported", "misattributed"]},
+                        "why": {"type": "string", "description": "why it is not supported"},
+                    },
+                    "required": ["span", "kind", "why"],
+                },
+            }
+        },
+        "required": ["issues"],
+    },
+}
+
+
+def llm_objections(sdk, model: str, draft: str, answer: CitedAnswer) -> list[str]:
+    findings = "\n".join(f"- {c.text}" for c in answer.claims) or "(none)"
+    gaps = "; ".join(g.note for g in answer.gaps) or "none"
+    unavailable = ", ".join(answer.sources_unavailable) or "none"
+    prompt = (
+        f"FINDINGS (the only supported facts):\n{findings}\n\n"
+        f"Coverage gaps: {gaps}\nUnavailable sources: {unavailable}\n\n"
+        f"DRAFT to audit:\n{draft}"
+    )
+    msg = sdk.messages.create(
+        model=model,
+        max_tokens=512,
+        system=[{"type": "text", "text": _AUDIT_SYSTEM}],
+        tools=[_AUDIT_TOOL],
+        tool_choice={"type": "tool", "name": "report_issues"},
+        messages=[{"role": "user", "content": prompt}],
+    )
+    payload = next((b.input for b in msg.content if getattr(b, "type", "") == "tool_use"), None)
+    issues = (payload or {}).get("issues") or []
+    return [f"{i.get('kind','unsupported')}: '{i.get('span','')}' — {i.get('why','')}" for i in issues]
