@@ -1,0 +1,77 @@
+@page {
+  size: A4;
+  margin: 16mm 14mm;
+  @bottom-center {
+    content: "Pallisade — confidential · page " counter(page) " of " counter(pages);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 7.5pt;
+    color: #6a625a;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  font-family: "Source Serif Pro", Georgia, "Times New Roman", serif;
+  font-size: 10.5pt; line-height: 1.55; color: #14110f;
+}
+.mono { font-family: "IBM Plex Mono", monospace; }
+.page-break { break-before: page; }
+
+/* Cover */
+.cover { display: block; padding-top: 20mm; }
+.cover .wordmark { font-family: "IBM Plex Mono", monospace; font-size: 11pt;
+  letter-spacing: 0.18em; text-transform: uppercase; color: #14110f; }
+.cover .wordmark .mark { color: #8b0b10; }
+.cover .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 9pt;
+  letter-spacing: 0.22em; text-transform: uppercase; color: #6a625a; margin: 24mm 0 4mm; }
+.cover .title { font-size: 30pt; line-height: 1.1; font-weight: 600; margin: 0;
+  padding-bottom: 5mm; border-bottom: 2.5pt solid #8b0b10; }
+.cover .date { font-family: "IBM Plex Mono", monospace; font-size: 10pt;
+  color: #3a342f; margin-top: 6mm; }
+
+/* Sections */
+h1, h2, h3 { font-family: Georgia, "Source Serif Pro", serif; color: #14110f;
+  break-after: avoid; }
+h1 { font-size: 15pt; margin: 8mm 0 3mm; }
+h2 { font-size: 13pt; margin: 7mm 0 2mm; }
+h3 { font-size: 11.5pt; color: #3a342f; margin: 5mm 0 2mm; }
+.section-eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 8.5pt;
+  letter-spacing: 0.16em; text-transform: uppercase; color: #6a625a; margin-top: 8mm; }
+p { margin: 0.5em 0; text-align: justify; hyphens: auto; }
+a { color: #8b0b10; text-decoration: none; }
+blockquote { border-left: 2pt solid #8b0b10; padding-left: 4mm; color: #3a342f;
+  font-style: italic; margin: 3mm 0; }
+code { font-family: "IBM Plex Mono", monospace; background: #f0ece4;
+  padding: 0 3px; font-size: 0.88em; }
+
+/* Q&A */
+.qa { break-inside: avoid-page; margin: 6mm 0; }
+.question { font-family: "IBM Plex Mono", monospace; font-size: 10.5pt;
+  color: #14110f; border-left: 2pt solid #8b0b10; padding-left: 4mm; margin-bottom: 3mm; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin: 3mm 0; font-size: 9pt; }
+thead { background: #f0ece4; }
+th { font-family: "IBM Plex Mono", monospace; font-weight: 600; text-align: left;
+  color: #3a342f; padding: 4px 6px; border-bottom: 0.75pt solid #cfc8bd;
+  text-transform: uppercase; font-size: 7.5pt; letter-spacing: 0.06em; }
+td { padding: 4px 6px; border-bottom: 0.4pt solid #e2dccf; vertical-align: top; }
+
+/* Sources / transcript / colophon */
+.sources { margin-top: 8mm; font-size: 9.5pt; }
+.sources .label { font-family: "IBM Plex Mono", monospace; font-size: 8pt;
+  letter-spacing: 0.12em; text-transform: uppercase; color: #6a625a; }
+.turn { break-inside: avoid; margin: 4mm 0; }
+.turn .who { font-family: "IBM Plex Mono", monospace; font-size: 8.5pt;
+  letter-spacing: 0.1em; text-transform: uppercase; }
+.turn.bull .who { color: #15803d; }
+.turn.bear .who { color: #b91c1c; }
+.round-label { font-family: "IBM Plex Mono", monospace; font-size: 8pt;
+  letter-spacing: 0.12em; text-transform: uppercase; color: #6a625a; margin: 6mm 0 2mm; }
+.verdict { border: 1pt solid #cfc8bd; padding: 5mm; margin: 4mm 0; }
+.verdict dt { font-family: "IBM Plex Mono", monospace; font-size: 8pt;
+  letter-spacing: 0.1em; text-transform: uppercase; color: #6a625a; }
+.verdict dd { margin: 0 0 3mm; font-size: 12pt; }
+.colophon { margin-top: 12mm; font-size: 9pt; color: #3a342f; }
+.colophon .fineprint { font-family: "IBM Plex Mono", monospace; font-size: 7.5pt;
+  letter-spacing: 0.1em; text-transform: uppercase; color: #6a625a; margin-top: 8mm; }
+.empty { font-style: italic; color: #6a625a; }
