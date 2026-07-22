@@ -114,6 +114,7 @@ def chat(req: ChatRequest, db: Session = Depends(get_db),
         depth="deep" if req.deep else "shallow",
         web_enabled=bool(os.environ.get("WEB_SEARCH_API_KEY")),
         web_model=settings.chat_model,
+        verify_model=settings.chat_model,
     )
     q = turn["query"]
     ans = _serialize(turn["answer"])
@@ -122,6 +123,7 @@ def chat(req: ChatRequest, db: Session = Depends(get_db),
         "assistant": turn["assistant"],
         "query": {"ticker": q.ticker, "capabilities": list(q.capabilities), "standalone": q.question},
         "answer": ans,
+        "verification": turn["verification"],
     }
 
 

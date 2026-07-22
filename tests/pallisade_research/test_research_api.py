@@ -83,6 +83,7 @@ def test_chat_uses_resolved_registry(monkeypatch):
             sources_used=(),
             sources_unavailable=(),
         ),
+        "verification": None,
     }
     converse_mock = Mock(return_value=turn)
 
@@ -143,6 +144,7 @@ def test_chat_surfaces_resolver_sources_unavailable(monkeypatch):
             sources_used=(),
             sources_unavailable=(),
         ),
+        "verification": None,
     }
 
     client = _client(monkeypatch, resolved)
@@ -174,7 +176,7 @@ def test_chat_passes_deep_flag_to_converse(monkeypatch):
         q = ResearchQuery(question=message, ticker=None, capabilities=())
         ans = CitedAnswer(question=message, claims=(), records=(), gaps=(),
                           sources_used=(), sources_unavailable=())
-        return {"assistant": "ok", "query": q, "answer": ans}
+        return {"assistant": "ok", "query": q, "answer": ans, "verification": None}
 
     client = _client(monkeypatch, resolved)
     monkeypatch.setattr(research, "converse", fake_converse)
@@ -184,3 +186,24 @@ def test_chat_passes_deep_flag_to_converse(monkeypatch):
     assert r.status_code == 200
     assert seen["depth"] == "deep"
     assert seen["web_enabled"] is True
+
+
+def test_chat_response_includes_verification(monkeypatch):
+    from pallisade_connections.resolver import ResolvedSources
+    from pallisade_research.sources.registry import ClientConfig
+
+    resolved = ResolvedSources(
+        client_config=ClientConfig(client_id="org-1", enabled_sources=frozenset()), registry={})
+
+    def fake_converse(history, message, **kw):
+        from pallisade_research.models import CitedAnswer, ResearchQuery
+        assert kw.get("verify_model")  # endpoint passes a verify model
+        q = ResearchQuery(question=message, ticker=None, capabilities=())
+        ans = CitedAnswer(question=message, claims=(), records=(), gaps=(),
+                          sources_used=(), sources_unavailable=())
+        return {"assistant": "ok", "query": q, "answer": ans, "verification": "verified"}
+
+    monkeypatch.setattr(research, "converse", fake_converse)
+    r = _client(monkeypatch, resolved).post("/api/research/chat", json={"message": "hi", "history": []})
+    assert r.status_code == 200
+    assert r.json()["verification"] == "verified"
