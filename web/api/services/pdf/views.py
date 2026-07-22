@@ -46,3 +46,27 @@ class ResearchConversationView:
     title: str
     generated_at: str    # ISO date string, supplied by the router
     messages: list[MessageView] = field(default_factory=list)
+
+
+@dataclass
+class ReportView:
+    key: str
+    label: str
+    markdown: str
+
+
+@dataclass
+class TurnView:
+    speaker: str   # "bull" | "bear"
+    round: int
+    text: str
+
+
+@dataclass
+class DebateView:
+    ticker: str
+    trade_date: str
+    generated_at: str
+    verdict: dict = field(default_factory=dict)   # {Rating, Conviction, "Fair Value", "Time Horizon", raw?}
+    reports: list[ReportView] = field(default_factory=list)
+    turns: list[TurnView] = field(default_factory=list)

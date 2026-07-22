@@ -7,7 +7,7 @@ import weasyprint
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .markdown_ext import render_markdown
-from .views import ResearchConversationView
+from .views import DebateView, ResearchConversationView
 
 _DIR = Path(__file__).parent
 _CSS = (_DIR / "static" / "print.css").read_text(encoding="utf-8")
@@ -27,3 +27,13 @@ def render_research_html(view: ResearchConversationView) -> str:
 
 def render_research_pdf(view: ResearchConversationView) -> bytes:
     return weasyprint.HTML(string=render_research_html(view)).write_pdf()
+
+
+def render_debate_html(view: DebateView) -> str:
+    return _env.get_template("debate.html").render(
+        view=view, css=_CSS, generated_at=view.generated_at
+    )
+
+
+def render_debate_pdf(view: DebateView) -> bytes:
+    return weasyprint.HTML(string=render_debate_html(view)).write_pdf()
