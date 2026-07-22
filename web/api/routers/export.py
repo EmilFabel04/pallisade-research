@@ -41,7 +41,7 @@ def _pdf_response(pdf: bytes, filename: str) -> Response:
 
 
 def _answer_view(answer: dict) -> AnswerView:
-    records_by_id = {r["id"]: r for r in answer.get("records", [])}
+    records_by_id = {r["id"]: r for r in answer.get("records", []) if r.get("id")}
 
     def _record_view(rid: str) -> RecordView | None:
         r = records_by_id.get(rid)
@@ -107,6 +107,13 @@ _REPORT_LABELS = {
 }
 
 
+def _as_int(v) -> int:
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return 0
+
+
 def _parse_verdict(text: str | None) -> dict:
     """Pull labeled fields (e.g. 'Rating: Buy') out of the final decision report."""
     out: dict[str, str] = {}
@@ -137,9 +144,9 @@ def export_debate(
         if reports.get(k)
     ]
     turns = [
-        TurnView(speaker=ev.payload.get("speaker", ""), round=int(ev.payload.get("round", 0)),
+        TurnView(speaker=ev.payload.get("speaker", ""), round=_as_int(ev.payload.get("round")),
                  text=ev.payload.get("text", ""))
-        for ev in events_service.list_events(db, run_id=run.id, after_seq=0)
+        for ev in events_service.list_events(db, run_id=run.id, after_seq=0, limit=1_000_000)
         if ev.type == "turn" and ev.payload.get("phase") == "invest"
     ]
     view = DebateView(

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from urllib.parse import urlparse
 
 import weasyprint
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -19,6 +20,14 @@ _env = Environment(
 _env.filters["markdown"] = render_markdown
 
 
+def _safe_url_fetcher(url: str):
+    """Block server-side resource fetching during PDF render (SSRF / local-file
+    read). Templates embed no external resources, so only data: URIs are allowed."""
+    if urlparse(url).scheme.lower() == "data":
+        return weasyprint.default_url_fetcher(url)
+    raise ValueError(f"external resource blocked in PDF export: {url!r}")
+
+
 def render_research_html(view: ResearchConversationView) -> str:
     return _env.get_template("research.html").render(
         view=view, css=_CSS, generated_at=view.generated_at
@@ -26,7 +35,9 @@ def render_research_html(view: ResearchConversationView) -> str:
 
 
 def render_research_pdf(view: ResearchConversationView) -> bytes:
-    return weasyprint.HTML(string=render_research_html(view)).write_pdf()
+    return weasyprint.HTML(
+        string=render_research_html(view), url_fetcher=_safe_url_fetcher
+    ).write_pdf()
 
 
 def render_debate_html(view: DebateView) -> str:
@@ -36,4 +47,6 @@ def render_debate_html(view: DebateView) -> str:
 
 
 def render_debate_pdf(view: DebateView) -> bytes:
-    return weasyprint.HTML(string=render_debate_html(view)).write_pdf()
+    return weasyprint.HTML(
+        string=render_debate_html(view), url_fetcher=_safe_url_fetcher
+    ).write_pdf()

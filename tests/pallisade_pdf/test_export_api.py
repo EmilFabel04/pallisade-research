@@ -53,7 +53,7 @@ def _debate_client(monkeypatch, run, events, viewer_role="member"):
         export.runs_service, "can_view_public_run",
         lambda *, viewer, run: run is not None and (viewer.role == "admin" or getattr(run, "user_id", None) == viewer.id),
     )
-    monkeypatch.setattr(export.events_service, "list_events", lambda db, *, run_id, after_seq=0: events)
+    monkeypatch.setattr(export.events_service, "list_events", lambda db, *, run_id, after_seq=0, limit=500: events)
     app = FastAPI()
     app.include_router(export.router, prefix="/api")
     app.dependency_overrides[get_db] = lambda: None
