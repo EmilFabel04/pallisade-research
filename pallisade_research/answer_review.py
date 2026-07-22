@@ -95,11 +95,14 @@ def unverified_derivations(answer: CitedAnswer) -> list[str]:
         recomputed = None
         if fn is not None and d.input_ids:
             try:
+                # Assumes single-input ops: all current COMPUTE_OPS take one series.
+                # A future multi-input op would need to resolve/pass more of input_ids.
                 series = by_id[d.input_ids[0]].value
                 recomputed = round(fn(series), 2)
             except (KeyError, IndexError, ValueError, TypeError):
                 recomputed = None
-        if recomputed is None or abs(recomputed - r.value) > 0.01:
+        value_is_numeric = isinstance(r.value, (int, float)) and not isinstance(r.value, bool)
+        if recomputed is None or not value_is_numeric or abs(recomputed - r.value) > 0.01:
             objections.append(
                 f"derived '{r.key}' = {r.value} does not reproduce (recomputed {recomputed})"
             )

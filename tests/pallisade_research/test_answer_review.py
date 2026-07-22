@@ -222,3 +222,12 @@ def test_unverified_derivations_passes_correct_and_flags_tampered():
     flagged = unverified_derivations(_metric_answer(stored_yoy=99.0))
     assert len(flagged) == 1
     assert "does not reproduce" in flagged[0]
+
+
+def test_unverified_derivations_fails_closed_on_non_numeric_value():
+    """A derived record tampered to a non-numeric .value must be flagged, not raise."""
+    from pallisade_research.answer_review import unverified_derivations
+    answer = _metric_answer(stored_yoy="20.0")  # tampered: string, not float
+    flagged = unverified_derivations(answer)
+    assert len(flagged) == 1
+    assert "does not reproduce" in flagged[0]
