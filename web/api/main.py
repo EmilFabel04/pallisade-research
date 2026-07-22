@@ -10,6 +10,7 @@ from web.api.routers.auth import router as auth_router
 from web.api.routers.chat import router as chat_router
 from web.api.routers.connections import router as connections_router
 from web.api.routers.documents import router as documents_router
+from web.api.routers.export import router as export_router
 from web.api.routers.org_documents import router as org_documents_router
 from web.api.routers.retrieve import router as retrieve_router
 from web.api.routers.runs import router as runs_router
@@ -46,6 +47,7 @@ app.include_router(library_router, prefix="/api")
 app.include_router(memo_checks_router, prefix="/api")
 app.include_router(storage_router)
 app.include_router(research_router, prefix="/api")
+app.include_router(export_router, prefix="/api")
 app.include_router(connections_router, prefix="/api/connections")
 app.include_router(market_router, prefix="/api/market")
 app.include_router(watchlist_router, prefix="/api/watchlist")
