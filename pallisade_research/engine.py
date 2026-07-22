@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pallisade_research.metrics.compute import compute_metrics
 from pallisade_research.models import CitedAnswer, Record, ResearchQuery
 from pallisade_research.reconcile import reconcile
 from pallisade_research.relevance import rank_articles
@@ -36,6 +37,10 @@ def gather_structured(
             used.append(src.source)
             records.extend(kept)
             covered |= {r.capability for r in kept}
+    # Derive trend/ratio metrics from any series records (deterministic; acts
+    # only when evidence-only series exist). One path so answer() + converse()
+    # both get derived records.
+    records = records + compute_metrics(records)
     return records, used, unavailable
 
 

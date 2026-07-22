@@ -183,3 +183,42 @@ def test_review_fails_closed_when_verifier_errors():
                       narrate=lambda o: "x", template=lambda: "TEMPLATE")
     assert r.status == "fallback"
     assert r.text == "TEMPLATE"
+
+
+def _metric_answer(stored_yoy=20.0):
+    from datetime import date
+    from pallisade_research.models import (
+        CitedAnswer, Claim, Derivation, Provenance, Record,
+    )
+    from pallisade_research.sources.base import CAP_METRICS
+
+    prov = Provenance(source="eodhd_fundamentals", locator="", as_of=None)
+    series = Record(id="s1", capability=CAP_METRICS, key="metrics.revenue.series",
+                    value=((date(2024, 12, 31), 100.0), (date(2025, 12, 31), 120.0)),
+                    provenance=prov, evidence_only=True)
+    derived = Record(id="s1-yoy", capability=CAP_METRICS, key="metrics.revenue.yoy",
+                     value=stored_yoy, provenance=prov,
+                     derivation=Derivation("yoy", ("s1",), "YoY = ..."))
+    claim = Claim(text=f"metrics.revenue.yoy: {stored_yoy} [eodhd_fundamentals]",
+                  record_ids=("s1-yoy",))
+    return CitedAnswer(question="has revenue grown?", claims=(claim,),
+                       records=(series, derived), gaps=(), sources_used=("eodhd_fundamentals",),
+                       sources_unavailable=())
+
+
+def test_unsupported_numbers_grounds_derived_and_ignores_series_tuples():
+    from pallisade_research.answer_review import unsupported_numbers
+    answer = _metric_answer(stored_yoy=20.0)
+    # 20 is grounded (derived value); 999 is not; the series numbers (100, 120,
+    # 2024, 2025...) must NOT ground a fabricated "100".
+    assert unsupported_numbers("revenue grew 20% year on year", answer) == []
+    assert "999" in unsupported_numbers("revenue grew 999%", answer)
+    assert "100" in unsupported_numbers("revenue was 100", answer)
+
+
+def test_unverified_derivations_passes_correct_and_flags_tampered():
+    from pallisade_research.answer_review import unverified_derivations
+    assert unverified_derivations(_metric_answer(stored_yoy=20.0)) == []
+    flagged = unverified_derivations(_metric_answer(stored_yoy=99.0))
+    assert len(flagged) == 1
+    assert "does not reproduce" in flagged[0]

@@ -88,3 +88,37 @@ def test_fundamentals_gap_still_returns_news_context():
     # but news context still comes back
     assert result.claims, "expected news claims as fallback context"
     assert "eodhd" in result.sources_used
+
+
+def test_gather_structured_appends_derived_metric_records():
+    from datetime import date
+    from pallisade_research.engine import gather_structured
+    from pallisade_research.models import Provenance, Record, ResearchQuery
+    from pallisade_research.sources.base import CAP_METRICS
+    from pallisade_research.sources.registry import ClientConfig
+
+    series = Record(id="s1", capability=CAP_METRICS, key="metrics.revenue.series",
+                    value=((date(2023, 12, 31), 80.0), (date(2024, 12, 31), 100.0),
+                           (date(2025, 12, 31), 120.0)),
+                    provenance=Provenance(source="eodhd_fundamentals", locator="", as_of=None),
+                    evidence_only=True)
+
+    class FakeFundamentals:
+        source = "eodhd_fundamentals"
+        tier = 3
+        capabilities = frozenset({CAP_METRICS})
+
+        def fetch(self, query):
+            return [series]
+
+    registry = {"eodhd_fundamentals": FakeFundamentals()}
+    config = ClientConfig(client_id="c", enabled_sources=frozenset({"eodhd_fundamentals"}))
+    query = ResearchQuery(question="has revenue grown?", ticker="AAPL", capabilities=(CAP_METRICS,))
+    records, used, unavailable = gather_structured(query, config, registry)
+
+    keys = {r.key for r in records}
+    assert "metrics.revenue.series" in keys           # input retained
+    assert "metrics.revenue.yoy" in keys              # derived appended
+    assert "eodhd_fundamentals" in used
+    derived = next(r for r in records if r.key == "metrics.revenue.yoy")
+    assert derived.derivation is not None

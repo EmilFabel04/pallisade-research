@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 from typing import Callable
 
+from pallisade_research.metrics.compute import COMPUTE_OPS
 from pallisade_research.models import CitedAnswer
 
 # Regex to match numeric magnitudes: thousands-separated, plain decimal, or leading-dot decimal, with optional %
@@ -58,6 +59,11 @@ def unsupported_numbers(draft: str, answer: CitedAnswer) -> list[str]:
     for c in answer.claims:
         grounded.update(_numbers_in(c.text))
     for r in answer.records:
+        # Skip series inputs: their tuple stringifies to a bag of dates/values
+        # that would falsely ground fabricated magnitudes. Derived records are
+        # scalar and not evidence_only, so they stay grounded here.
+        if r.evidence_only or isinstance(r.value, (tuple, list)):
+            continue
         # Intentionally permissive: matches on magnitude alone, so a record value grounds
         # any draft number with the same magnitude regardless of which metric it's attached
         # to. Catching misattribution to the wrong metric is the independent auditor's job.
@@ -70,6 +76,34 @@ def unsupported_numbers(draft: str, answer: CitedAnswer) -> list[str]:
             seen.add(n)
             out.append(n)
     return out
+
+
+def unverified_derivations(answer: CitedAnswer) -> list[str]:
+    """Re-run every derived record's operation on its cited inputs; flag mismatches.
+
+    Fails closed: a missing op, an unresolvable input, or a value that does not
+    reproduce within 0.01 all produce an objection. This is the machine-checkable
+    half of the grounding guarantee for computed numbers.
+    """
+    by_id = {r.id: r for r in answer.records}
+    objections: list[str] = []
+    for r in answer.records:
+        if r.derivation is None:
+            continue
+        d = r.derivation
+        fn = COMPUTE_OPS.get(d.operation)
+        recomputed = None
+        if fn is not None and d.input_ids:
+            try:
+                series = by_id[d.input_ids[0]].value
+                recomputed = round(fn(series), 2)
+            except (KeyError, IndexError, ValueError, TypeError):
+                recomputed = None
+        if recomputed is None or abs(recomputed - r.value) > 0.01:
+            objections.append(
+                f"derived '{r.key}' = {r.value} does not reproduce (recomputed {recomputed})"
+            )
+    return objections
 
 
 _AUDIT_SYSTEM = (
@@ -149,13 +183,14 @@ def review_answer(
 ) -> ReviewedAnswer:
     current = draft
     last_issues: list[str] = []
+    deriv_issues = unverified_derivations(answer)
     for attempt in range(max_retries + 1):
         nums = unsupported_numbers(current, answer)
         try:
             objs = llm_objections(sdk, model, current, answer)
         except Exception:  # noqa: BLE001 — reviewer unavailable → fail closed
             return ReviewedAnswer(template(), "fallback", ())
-        issues = [f"number '{n}' is not in the findings" for n in nums] + objs
+        issues = [f"number '{n}' is not in the findings" for n in nums] + deriv_issues + objs
         if not issues:
             return ReviewedAnswer(current, "verified" if attempt == 0 else "regenerated", ())
         last_issues = issues

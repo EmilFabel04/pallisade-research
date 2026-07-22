@@ -8,6 +8,8 @@ from pallisade_research.models import Claim, Record
 def reconcile(records: list[Record]) -> list[Claim]:
     by_key: dict[str, list[Record]] = defaultdict(list)
     for rec in records:
+        if rec.evidence_only:
+            continue  # series inputs are evidence, not narratable claims
         by_key[rec.key].append(rec)
 
     claims: list[Claim] = []

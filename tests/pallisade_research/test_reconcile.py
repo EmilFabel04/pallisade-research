@@ -35,3 +35,22 @@ def test_distinct_keys_distinct_claims():
     ]
     claims = reconcile(recs)
     assert len(claims) == 2
+
+
+def test_reconcile_skips_evidence_only_but_keeps_derived():
+    from datetime import date
+    from pallisade_research.models import Derivation, Provenance, Record
+    from pallisade_research.reconcile import reconcile
+    from pallisade_research.sources.base import CAP_METRICS
+
+    prov = Provenance(source="eodhd_fundamentals", locator="", as_of=None)
+    series = Record(id="s1", capability=CAP_METRICS, key="metrics.revenue.series",
+                    value=((date(2024, 12, 31), 100.0), (date(2025, 12, 31), 120.0)),
+                    provenance=prov, evidence_only=True)
+    derived = Record(id="s1-yoy", capability=CAP_METRICS, key="metrics.revenue.yoy",
+                     value=20.0, provenance=prov,
+                     derivation=Derivation("yoy", ("s1",), "YoY = ..."))
+    claims = reconcile([series, derived])
+    texts = [c.text for c in claims]
+    assert any("metrics.revenue.yoy" in t for t in texts)
+    assert not any("metrics.revenue.series" in t for t in texts)
