@@ -19,6 +19,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Any
 
+from pallisade_research.answer_review import review_answer
 from pallisade_research.citations import tiered_sources_line
 from pallisade_research.engine import gather_structured, ground
 from pallisade_research.models import CitedAnswer, ResearchQuery
@@ -140,7 +141,7 @@ def _plan_with_llm(sdk: Any, model: str, history: list[dict], message: str) -> R
     )
 
 
-def _narrate_with_llm(sdk: Any, model: str, answer: CitedAnswer) -> str:
+def _narrate_with_llm(sdk: Any, model: str, answer: CitedAnswer, *, objection: str | None = None) -> str:
     findings = "\n".join(f"- {c.text}" for c in answer.claims) or "(none returned)"
     gaps = "; ".join(g.note for g in answer.gaps) or "none"
     unavailable = ", ".join(answer.sources_unavailable) or "none"
@@ -156,6 +157,12 @@ def _narrate_with_llm(sdk: Any, model: str, answer: CitedAnswer) -> str:
         "(#), no blockquotes (>), no bullet or numbered lists, no bold (**), no "
         "backticks. Just sentences."
     )
+    if objection:
+        prompt += (
+            f"\n\nA previous draft was REJECTED by the auditor for: {objection}. "
+            "Rewrite so every statement is fully supported by the findings above; "
+            "drop anything you cannot support."
+        )
     msg = sdk.messages.create(
         model=model,
         max_tokens=400,
@@ -188,11 +195,16 @@ def converse(
     depth: str = "shallow",
     web_enabled: bool = False,
     web_model: str | None = None,
+    verify_model: str | None = None,
 ) -> dict:
-    """Run one conversational turn. Returns {assistant, query, answer}.
+    """Run one conversational turn. Returns {assistant, query, answer, verification}.
 
     `answer` is a CitedAnswer. Degrades to the deterministic planner + templated
-    narration if the LLM is unavailable or errors.
+    narration if the LLM is unavailable or errors. `verification` reports how the
+    `assistant` text was produced: "verified" (draft passed review as-is),
+    "regenerated" (passed after at least one narrator rewrite), "fallback"
+    (review/narration failed or a rewrite never cleared review — templated text
+    is used), or "template" (no `sdk`, deterministic templating only).
     """
     # 1. plan (LLM in context, deterministic fallback)
     query: ResearchQuery
@@ -225,10 +237,19 @@ def converse(
     # 3. narrate (LLM constrained to findings, templated fallback)
     if sdk is not None:
         try:
-            assistant = _narrate_with_llm(sdk, narrate_model, answer)
+            draft = _narrate_with_llm(sdk, narrate_model, answer)
+            reviewed = review_answer(
+                sdk, verify_model or narrate_model, answer, draft,
+                narrate=lambda obj: _narrate_with_llm(sdk, narrate_model, answer, objection=obj),
+                template=lambda: _template_narration(answer),
+            )
+            assistant = reviewed.text
+            verification = reviewed.status
         except Exception:
             assistant = _template_narration(answer)
+            verification = "fallback"
     else:
         assistant = _template_narration(answer)
+        verification = "template"
 
-    return {"assistant": assistant, "query": query, "answer": answer}
+    return {"assistant": assistant, "query": query, "answer": answer, "verification": verification}
