@@ -38,6 +38,7 @@ def test_research_html_contains_content():
     assert "yfinance" in html
     assert "edgar" in html            # unavailable source
     assert "No margin history." in html  # gap
+    assert 'font-family: "IBM Plex Mono"' in html
 
 
 def test_research_pdf_is_pdf_bytes():
