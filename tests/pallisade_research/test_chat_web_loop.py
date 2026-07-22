@@ -48,3 +48,33 @@ def test_converse_skips_web_when_disabled(monkeypatch):
     turn = converse([], "hi", config=config, registry={}, known_tickers=frozenset(),
                     sdk=None, plan_model="p", narrate_model="n", web_enabled=False)
     assert turn["answer"].sources_used == ()
+
+
+def test_converse_caps_web_by_depth(monkeypatch):
+    """Web records are capped by depth (shallow=5, deep=12) before grounding."""
+    def fake_research(query, **kw):
+        from pallisade_research.models import Provenance, Record
+        from pallisade_research.web.loop import WebResearchResult
+        recs = tuple(
+            Record(id=f"web-{i}", capability="research", key=f"web.{i}",
+                   value=f"Analyst note number {i}.",
+                   provenance=Provenance(source="web", locator="https://ex.com", as_of=None, tier=3))
+            for i in range(10)
+        )
+        return WebResearchResult(records=recs, used=True, unavailable=False)
+
+    monkeypatch.setattr("pallisade_research.chat.web_research", fake_research)
+    config = ClientConfig(client_id="c", enabled_sources=frozenset())
+
+    shallow = converse([], "any news?", config=config, registry={}, known_tickers=frozenset({"NPN.JO"}),
+                        sdk=_FakeSDK(), plan_model="p", narrate_model="n",
+                        depth="shallow", web_enabled=True, web_model="w")
+    web_records_shallow = [r for r in shallow["answer"].records if r.provenance.source == "web"]
+    assert len(web_records_shallow) <= 5
+
+    deep = converse([], "any news?", config=config, registry={}, known_tickers=frozenset({"NPN.JO"}),
+                     sdk=_FakeSDK(), plan_model="p", narrate_model="n",
+                     depth="deep", web_enabled=True, web_model="w")
+    web_records_deep = [r for r in deep["answer"].records if r.provenance.source == "web"]
+    assert len(web_records_deep) <= 12
+    assert len(web_records_deep) == 10  # all 10 survive under the deep cap

@@ -54,7 +54,7 @@ def rank_articles(records: list[Record], question: str, top_k: int) -> list[Reco
 
     by_cap: dict[str, list[Record]] = {}
     for r in records:
-        if r.capability in _ARTICLE_CAPS:
+        if r.capability in _ARTICLE_CAPS and r.provenance.source != "web":
             by_cap.setdefault(r.capability, []).append(r)
     if not by_cap:
         return records
@@ -65,4 +65,21 @@ def rank_articles(records: list[Record], question: str, top_k: int) -> list[Reco
         for i in order[:top_k]:
             keep.add(recs[i].id)
 
-    return [r for r in records if r.capability not in _ARTICLE_CAPS or r.id in keep]
+    return [r for r in records if r.provenance.source == "web" or r.capability not in _ARTICLE_CAPS or r.id in keep]
+
+
+def rank_web_records(records: list[Record], question: str, top_k: int) -> list[Record]:
+    """Keep only the top_k most question-relevant web records; non-web records pass untouched.
+
+    Web passages all carry distinct keys (each becomes its own claim), so without a
+    cap a deep dive would flood the narrator. Ranked by token overlap with the
+    question; ties preserve fetch order. Applied per-turn with a depth-scaled top_k."""
+    if top_k < 1:
+        return records
+    web = [r for r in records if r.provenance.source == "web"]
+    if len(web) <= top_k:
+        return records
+    q = _tokens(question)
+    order = sorted(range(len(web)), key=lambda i: (-_score(web[i], q), i))
+    keep = {web[i].id for i in order[:top_k]}
+    return [r for r in records if r.provenance.source != "web" or r.id in keep]

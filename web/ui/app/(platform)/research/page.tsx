@@ -179,7 +179,7 @@ export default function ResearchDashboard() {
               ? "bg-[var(--color-accent)] text-white"
               : "border border-[var(--color-border)] text-[var(--color-fg-muted)]"
           }`}
-          title="Deep dive runs a longer, multi-round web search"
+          title="Web search runs on every question. Deep dive makes it longer and multi-round."
         >
           Deep dive
         </button>

@@ -23,6 +23,7 @@ from pallisade_research.citations import tiered_sources_line
 from pallisade_research.engine import gather_structured, ground
 from pallisade_research.models import CitedAnswer, ResearchQuery
 from pallisade_research.planner import plan as deterministic_plan
+from pallisade_research.relevance import rank_web_records
 from pallisade_research.sources.base import (
     ALL_CAPABILITIES,
     CAP_FUNDAMENTALS,
@@ -103,6 +104,11 @@ _PLAN_SYSTEM = (
 # developments (see planner prompt), so a plain overview no longer drags in a
 # wall of off-topic headlines.
 _DEFAULT_CAPS = (CAP_FUNDAMENTALS,)
+
+# Web passages each become their own claim (distinct keys), so an uncapped deep
+# dive would flood the narrator (~96 seen in practice). Cap by depth, ranked by
+# relevance to the standalone question, before merging into `records`.
+_WEB_TOPK = {"shallow": 5, "deep": 12}
 
 
 def _plan_with_llm(sdk: Any, model: str, history: list[dict], message: str) -> ResearchQuery:
@@ -205,7 +211,7 @@ def converse(
     if sdk is not None and web_enabled:
         try:
             web = web_research(query, sdk=sdk, model=web_model or narrate_model, depth=depth)
-            records.extend(web.records)
+            records.extend(rank_web_records(list(web.records), query.question, top_k=_WEB_TOPK.get(depth, 5)))
             if web.used:
                 used.append("web")
             if web.unavailable:
