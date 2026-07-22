@@ -4,6 +4,7 @@ import os
 
 from pallisade_connections.base import FieldSpec, TestResult
 from pallisade_research.sources.eodhd import EODHDSource
+from pallisade_research.sources.eodhd_fundamentals import EODHDFundamentalsSource
 from pallisade_research.sources.eodhd_markets import EODHDMarketsSource
 from pallisade_research.sources.holdings import HoldingsSource
 from pallisade_research.sources.smartkarma import SmartkarmaSource
@@ -52,6 +53,21 @@ class EODHDMarketsConnector:
 
     def as_research_source(self, creds, config):
         return EODHDMarketsSource()
+
+
+class EODHDFundamentalsConnector:
+    type_id = "eodhd_fundamentals"
+    requires_credentials = False  # shared platform key from env, not per-user
+    config_fields: list[FieldSpec] = []
+    capabilities = frozenset({"metrics"})
+
+    def test(self, creds, config) -> TestResult:
+        if not os.environ.get("EODHD_API_KEY"):
+            return {"ok": False, "kind": "unsupported", "detail": "Set EODHD_API_KEY in the platform environment."}
+        return {"ok": True, "kind": "ok", "detail": "Built-in historical fundamentals via shared EODHD key."}
+
+    def as_research_source(self, creds, config):
+        return EODHDFundamentalsSource()
 
 
 class WorldBankConnector:

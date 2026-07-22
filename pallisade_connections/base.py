@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Protocol, TypedDict, runtime_checkable
 
 CAPABILITIES = ("prices", "fundamentals", "estimates", "news",
-                "transcripts", "research", "holdings", "macro", "markets")
+                "transcripts", "research", "holdings", "macro", "markets", "metrics")
 
 # Map a canonical capability to the debate engine's data_vendors category.
 DEBATE_CATEGORY = {

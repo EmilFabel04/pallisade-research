@@ -7,7 +7,7 @@ from pallisade_connections.registry import CONNECTOR_REGISTRY, get_connector
 
 def test_v1_connector_types_registered():
     assert set(CONNECTOR_REGISTRY) == {
-        "yfinance", "eodhd", "eodhd_markets", "worldbank", "holdings", "smartkarma", "web", "mcp",
+        "yfinance", "eodhd", "eodhd_markets", "eodhd_fundamentals", "worldbank", "holdings", "smartkarma", "web", "mcp",
     }
 
 

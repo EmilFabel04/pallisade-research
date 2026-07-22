@@ -21,7 +21,7 @@ class ResolvedSources:
     sources_unavailable: list[str] = field(default_factory=list)
 
 
-BUILTIN_ALWAYS_ON = ("yfinance", "eodhd", "eodhd_markets", "worldbank")
+BUILTIN_ALWAYS_ON = ("yfinance", "eodhd", "eodhd_markets", "eodhd_fundamentals", "worldbank")
 
 
 def resolve_for_org(db: Session, org_id: uuid.UUID) -> ResolvedSources:

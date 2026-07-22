@@ -78,3 +78,16 @@ def test_smartkarma_test_ok_with_key():
     c = SmartkarmaConnector()
     res = c.test("some-key", {})
     assert res["ok"] is True and res["kind"] == "ok"
+
+
+def test_eodhd_fundamentals_connector_registered_and_always_on():
+    from pallisade_connections.registry import CONNECTOR_REGISTRY
+    from pallisade_connections.resolver import BUILTIN_ALWAYS_ON
+    from pallisade_research.sources.eodhd_fundamentals import EODHDFundamentalsSource
+
+    conn = CONNECTOR_REGISTRY["eodhd_fundamentals"]
+    assert conn.type_id == "eodhd_fundamentals"
+    assert conn.requires_credentials is False
+    assert conn.capabilities == frozenset({"metrics"})
+    assert isinstance(conn.as_research_source(None, {}), EODHDFundamentalsSource)
+    assert "eodhd_fundamentals" in BUILTIN_ALWAYS_ON
