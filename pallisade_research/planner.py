@@ -6,11 +6,13 @@ from pallisade_research.models import ResearchQuery
 from pallisade_research.sources.base import (
     ALL_CAPABILITIES,
     CAP_FUNDAMENTALS,
+    CAP_METRICS,
     CAP_NEWS,
     CAP_RESEARCH,
 )
 
 _CONVICTION = ("hold", "invest", "worth", "buy", "sell")
+_TREND = ("grow", "growth", "trend", "cagr", "over time", "history", "historical", "vs average")
 
 
 def plan(question: str, known_tickers: frozenset[str]) -> ResearchQuery:
@@ -49,5 +51,8 @@ def plan(question: str, known_tickers: frozenset[str]) -> ResearchQuery:
         # questions that explicitly ask about developments (the "news" branch),
         # so ordinary overviews no longer pull a wall of off-topic articles.
         caps = (CAP_FUNDAMENTALS,)
+
+    if any(w in low for w in _TREND):
+        caps = tuple(sorted(set(caps) | {CAP_METRICS}))
 
     return ResearchQuery(question=question, ticker=ticker, capabilities=caps)

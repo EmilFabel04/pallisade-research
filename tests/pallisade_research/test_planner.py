@@ -58,3 +58,16 @@ def test_plan_conviction_still_includes_holdings():
     q = plan("is AAPL worth holding?", KNOWN)
     assert q.ticker == "AAPL"
     assert CAP_HOLDINGS in q.capabilities
+
+
+def test_plan_adds_metrics_for_trend_questions():
+    from pallisade_research.sources.base import CAP_METRICS
+    for q in ["has AAPL revenue grown?", "what is AAPL's revenue CAGR",
+              "show AAPL revenue trend over time", "AAPL P/E vs average historically"]:
+        caps = plan(q, KNOWN).capabilities
+        assert CAP_METRICS in caps, q
+
+
+def test_plan_omits_metrics_for_plain_overview():
+    from pallisade_research.sources.base import CAP_METRICS
+    assert CAP_METRICS not in plan("give me an overview of AAPL please", KNOWN).capabilities

@@ -95,7 +95,10 @@ _PLAN_SYSTEM = (
     "or indices use 'markets' with entity=<pair/coin/index> and the matching "
     "entity_type ('fx'/'crypto'/'index'). Leave ticker null when using entity. "
     "For a stock's current price or recent market movement ('how is it doing', "
-    "'market shifts', 'price'), ALSO request 'markets' — it works with the equity ticker."
+    "'market shifts', 'price'), ALSO request 'markets' — it works with the equity ticker. "
+    "For questions about growth, trends, history, CAGR, 'over time', or a "
+    "ratio 'vs average', ALSO request 'metrics' — it derives period-over-period "
+    "and CAGR figures from the ticker's own history."
 )
 
 # holdings is intentionally NOT a default: it is only requested when the
