@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PageHeader, EmptyState } from "@/app/_ui";
+import { PageHeader, EmptyState, Button } from "@/app/_ui";
 import { useWatchlist, ensureWatchlistSeeded } from "@/lib/watchlist";
 import { ApiError } from "@/lib/api";
 import { SEED_WATCHLIST } from "@/lib/seed";
@@ -67,13 +67,9 @@ export default function WatchlistPage() {
               aria-label="Add ticker"
               className="w-36 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-1.5 font-mono text-xs uppercase text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)] transition-colors focus:border-[var(--color-accent)] focus:outline-none"
             />
-            <button
-              type="submit"
-              disabled={busy}
-              className="rounded-md bg-[var(--color-accent)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-white transition-all duration-150 hover:opacity-90 active:scale-95 disabled:opacity-50"
-            >
+            <Button type="submit" size="sm" disabled={busy}>
               {busy ? "Adding…" : "Add"}
-            </button>
+            </Button>
           </form>
         </div>
       </PageHeader>

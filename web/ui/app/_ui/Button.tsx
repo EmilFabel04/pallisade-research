@@ -3,11 +3,17 @@
 import type { ButtonHTMLAttributes } from "react";
 
 type ButtonVariant = "primary" | "secondary" | "ghost";
+type ButtonSize = "sm" | "md";
 
 const buttonBase =
-  "inline-flex items-center justify-center rounded-md px-5 py-2.5 font-mono " +
-  "text-xs uppercase tracking-wider transition disabled:opacity-50 " +
+  "inline-flex items-center justify-center rounded-md font-mono " +
+  "uppercase tracking-wider transition disabled:opacity-50 " +
   "disabled:cursor-not-allowed";
+
+const buttonBySize: Record<ButtonSize, string> = {
+  sm: "px-3 py-1.5 text-[11px]",
+  md: "px-5 py-2.5 text-xs",
+};
 
 const buttonByVariant: Record<ButtonVariant, string> = {
   primary:
@@ -25,13 +31,17 @@ const buttonByVariant: Record<ButtonVariant, string> = {
 
 export function Button({
   variant = "primary",
+  size = "md",
   className = "",
   ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+}) {
   return (
     <button
       {...rest}
-      className={`${buttonBase} ${buttonByVariant[variant]} ${className}`}
+      className={`${buttonBase} ${buttonBySize[size]} ${buttonByVariant[variant]} ${className}`}
     />
   );
 }

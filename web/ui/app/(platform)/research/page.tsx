@@ -8,7 +8,7 @@ import { SERIF, inlineSegments, stripBlockMarkdown } from "@/lib/research-format
 import { Artifact } from "@/app/_ui/research/Artifact";
 import { History } from "@/app/_ui/research/History";
 import { saveArtefact } from "@/lib/artefacts";
-import { toast } from "@/app/_ui";
+import { toast, Segmented, Eyebrow, Button } from "@/app/_ui";
 
 type View = "chat" | "history";
 
@@ -25,19 +25,6 @@ const SUGGESTIONS = [
   "what about its profit margin?",
   "overview of CPI.JO",
 ];
-
-function SegBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`rounded-md px-3 py-1 font-mono text-[10px] uppercase tracking-wider ${
-        active ? "bg-[var(--color-accent-soft)] text-[var(--color-fg)]" : "text-[var(--color-fg-dim)]"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
 
 function Narration({ text }: { text: string }) {
   return (
@@ -168,8 +155,15 @@ export default function ResearchDashboard() {
     <div className="flex h-[78vh] flex-col overflow-hidden rounded-[16px] border border-[var(--color-border)] bg-[var(--color-surface)]">
       {/* ─── segmented control header ─── */}
       <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-4 py-2">
-        <SegBtn active={view === "chat"} onClick={() => setView("chat")}>Chat</SegBtn>
-        <SegBtn active={view === "history"} onClick={() => setView("history")}>History</SegBtn>
+        <Segmented
+          aria-label="Research view"
+          value={view}
+          onChange={setView}
+          options={[
+            { value: "chat", label: "Chat" },
+            { value: "history", label: "History" },
+          ]}
+        />
         <button
           type="button"
           onClick={() => setDeep((d) => !d)}
@@ -197,7 +191,7 @@ export default function ResearchDashboard() {
             <div className="flex-1 overflow-y-auto px-6 py-6">
               {messages.length === 0 ? (
                 <div className="mx-auto mt-10 max-w-xl text-center">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--color-accent)]">Research Copilot</p>
+                  <Eyebrow>Research Copilot</Eyebrow>
                   <h1 className="mt-3 text-3xl leading-tight text-[var(--color-fg)]" style={SERIF}>
                     Ask anything. Every figure traces back to where it came from.
                   </h1>
@@ -302,13 +296,9 @@ export default function ResearchDashboard() {
                   className="w-full bg-transparent font-mono text-sm text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)] focus:outline-none"
                   autoFocus
                 />
-                <button
-                  type="submit"
-                  disabled={pending || !input.trim()}
-                  className="shrink-0 rounded-md bg-[var(--color-accent)] px-4 py-1.5 font-mono text-[11px] uppercase tracking-wider text-white transition-all duration-150 hover:opacity-90 active:scale-95 disabled:opacity-30"
-                >
+                <Button type="submit" size="sm" disabled={pending || !input.trim()} className="shrink-0">
                   {pending ? "…" : "Ask"}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
