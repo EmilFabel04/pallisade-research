@@ -21,11 +21,13 @@ def _normalize_num(tok: str) -> str:
         "-12.5" -> "12.5"
         "1,234.0" -> "1234"
         "24%" -> "24"
-        ".5" -> ".5"
+        ".5" -> "0.5"
     """
     # Strip leading sign: magnitude check is sign-agnostic (sign correctness is the auditor's job)
     t = tok.lstrip("+-")
     t = t.replace(",", "").rstrip("%")
+    if t.startswith("."):
+        t = "0" + t  # .5 -> 0.5, so it compares equal to an explicit 0.5
     if "." in t:
         t = t.rstrip("0").rstrip(".")  # 24.0 -> 24, 24.50 -> 24.5
     return t
@@ -56,6 +58,9 @@ def unsupported_numbers(draft: str, answer: CitedAnswer) -> list[str]:
     for c in answer.claims:
         grounded.update(_numbers_in(c.text))
     for r in answer.records:
+        # Intentionally permissive: matches on magnitude alone, so a record value grounds
+        # any draft number with the same magnitude regardless of which metric it's attached
+        # to. Catching misattribution to the wrong metric is the independent auditor's job.
         grounded.update(_numbers_in(str(r.value)))
 
     out: list[str] = []
@@ -119,7 +124,9 @@ def llm_objections(sdk, model: str, draft: str, answer: CitedAnswer) -> list[str
         messages=[{"role": "user", "content": prompt}],
     )
     payload = next((b.input for b in msg.content if getattr(b, "type", "") == "tool_use"), None)
-    issues = (payload or {}).get("issues") or []
+    if payload is None:
+        raise ValueError("auditor returned no tool_use block")
+    issues = payload.get("issues") or []
     return [f"{i.get('kind','unsupported')}: '{i.get('span','')}' — {i.get('why','')}" for i in issues]
 
 

@@ -1,6 +1,12 @@
 import pytest
 
-from pallisade_research.answer_review import unsupported_numbers, llm_objections, ReviewedAnswer, review_answer
+from pallisade_research.answer_review import (
+    unsupported_numbers,
+    llm_objections,
+    ReviewedAnswer,
+    review_answer,
+    _AUDIT_SYSTEM,
+)
 from pallisade_research.models import CitedAnswer, Claim, Provenance, Record
 
 
@@ -58,8 +64,14 @@ def test_leading_dot_decimal_is_matched():
     # Grounded value: 0.5 (could be from a record or claim containing ".5")
     ans = _answer(("market_impact: 0.5 [src]",), record_values=(0.5,))
     # Draft contains a different leading-dot number .9; it should be flagged as unsupported
-    # (even though .5 is supported)
-    assert unsupported_numbers("The coefficient was .9.", ans) == [".9"]
+    # (even though .5 is supported). Leading-dot decimals normalize with a "0" prefix.
+    assert unsupported_numbers("The coefficient was .9.", ans) == ["0.9"]
+
+
+def test_leading_dot_matches_zero_prefixed():
+    """.5 in the draft should match a grounded 0.5 — leading-dot normalization is symmetric."""
+    ans = _answer(("market_impact: 0.5 [src]",), record_values=(0.5,))
+    assert unsupported_numbers("It moved .5 points.", ans) == []
 
 
 # LLM objections tests with mocked SDK
@@ -77,8 +89,10 @@ class _SDK:
     def __init__(self, msg=None, err=None):
         self._msg, self._err = msg, err
         self.messages = self
+        self.last_kwargs = None
 
     def create(self, **kw):
+        self.last_kwargs = kw
         if self._err:
             raise self._err
         return self._msg
@@ -105,6 +119,26 @@ def test_llm_objections_empty_when_clean():
 def test_llm_objections_raises_on_sdk_error():
     with pytest.raises(RuntimeError):
         llm_objections(_SDK(err=RuntimeError("down")), "m", "draft", _answer(("x: 1 [s]",)))
+
+
+def test_llm_objections_raises_on_missing_tool_block():
+    """A response with no tool_use block must raise, not silently be treated as 'clean'."""
+    msg = _Msg([_Block(type="text", text="I have thoughts but no tool call.")])
+    with pytest.raises(ValueError):
+        llm_objections(_SDK(msg=msg), "m", "draft", _answer(("x: 1 [s]",)))
+
+
+def test_llm_objections_sends_adversarial_system_and_forced_tool():
+    """The auditor call must be independent/adversarial: forced tool + auditor system prompt."""
+    sdk = _clean_sdk()
+    llm_objections(sdk, "m", "draft", _answer(("x: 1 [s]",)))
+    kw = sdk.last_kwargs
+    assert kw is not None
+    assert kw["tool_choice"] == {"type": "tool", "name": "report_issues"}
+    system_text = kw["system"][0]["text"] if isinstance(kw["system"], list) else kw["system"]
+    assert "auditor" in system_text
+    assert "DIRECTION" in system_text
+    assert system_text == _AUDIT_SYSTEM
 
 
 # Review orchestrator tests
