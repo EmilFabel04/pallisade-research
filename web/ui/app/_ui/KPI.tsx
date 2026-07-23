@@ -25,7 +25,7 @@ export function KPI({
     <div
       className={
         "flex flex-col gap-1 rounded-lg border border-[var(--color-border)] " +
-        "bg-[var(--color-surface-2)] p-3 " +
+        "elevated p-3 " +
         className
       }
     >
