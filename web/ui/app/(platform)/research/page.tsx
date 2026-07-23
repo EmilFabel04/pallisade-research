@@ -9,7 +9,7 @@ import { SERIF, inlineSegments, stripBlockMarkdown } from "@/lib/research-format
 import { Artifact } from "@/app/_ui/research/Artifact";
 import { History } from "@/app/_ui/research/History";
 import { saveArtefact } from "@/lib/artefacts";
-import { toast, Segmented, Eyebrow, Button } from "@/app/_ui";
+import { toast, Segmented, Eyebrow, Button, MicButton } from "@/app/_ui";
 import { researchPdfUrl, openPdf } from "@/lib/export";
 
 type View = "chat" | "history";
@@ -316,6 +316,7 @@ export default function ResearchDashboard() {
                   className="w-full bg-transparent font-mono text-sm text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)] focus:outline-none"
                   autoFocus
                 />
+                <MicButton onTranscript={(t) => setInput((v) => (v ? v + " " : "") + t.trim())} />
                 <Button type="submit" size="sm" disabled={pending || !input.trim()} className="shrink-0">
                   {pending ? "…" : "Ask"}
                 </Button>

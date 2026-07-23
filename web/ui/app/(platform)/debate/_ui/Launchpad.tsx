@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MicButton } from "@/app/_ui";
 
 const ROUND_OPTIONS = [1, 2, 3];
 
@@ -37,6 +38,7 @@ export function Launchpad({
           autoFocus
           className="flex-1 min-w-[10rem] rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 font-mono text-sm outline-none focus:border-[var(--color-accent)]"
         />
+        <MicButton onTranscript={(t) => setTicker((v) => (v ? v + " " : "") + t.trim())} />
         <label className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-[var(--color-fg-muted)]">
           Rounds
           <select
