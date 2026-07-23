@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { MicButton } from "@/app/_ui";
 
 const ROUND_OPTIONS = [1, 2, 3];
@@ -56,9 +57,9 @@ export function Launchpad({
         <button
           type="submit"
           disabled={!ticker.trim()}
-          className="rounded-md border border-[var(--color-accent)] bg-[var(--color-accent-soft)] px-4 py-2 font-mono text-sm text-[var(--color-accent)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-accent)] bg-[var(--color-accent-soft)] px-4 py-2 font-mono text-sm text-[var(--color-accent)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Run debate →
+          Run debate <ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" />
         </button>
       </div>
     </form>

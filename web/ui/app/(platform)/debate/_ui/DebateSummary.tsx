@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { TrendingUp, TrendingDown, ShieldAlert } from "lucide-react";
+import { TrendingUp, TrendingDown, ShieldAlert, ArrowDown } from "lucide-react";
 import { Badge } from "@/app/_ui";
 import { extractTakeaway, parseFields, ratingTone } from "@/lib/debate";
 import type { DebateRunState } from "./useDebateStream";
@@ -49,9 +49,9 @@ export function DebateSummary({ state }: { state: DebateRunState }) {
         </div>
         <a
           href="#verdict"
-          className="shrink-0 font-mono text-[11px] uppercase tracking-wider text-[var(--color-accent)] hover:underline"
+          className="shrink-0 inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-[var(--color-accent)] hover:underline"
         >
-          ↓ jump to verdict
+          <ArrowDown size={13} strokeWidth={1.75} aria-hidden="true" /> jump to verdict
         </a>
       </div>
 

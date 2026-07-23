@@ -87,7 +87,7 @@ export function MicButton({
       onClick={toggle}
       size={size}
       variant={recording ? "accent" : "ghost"}
-      className={`${recording ? "pulse-dot" : ""} ${className}`}
+      className={`${recording ? "ring-2 ring-[var(--color-accent)]" : ""} ${className}`}
       type="button"
     />
   );
