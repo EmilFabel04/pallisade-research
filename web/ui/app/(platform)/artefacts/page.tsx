@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { PageHeader, EmptyState } from "@/app/_ui";
+import { Diamond, Search, X } from "lucide-react";
+import { PageHeader, EmptyState, IconButton } from "@/app/_ui";
 import {
   useArtefacts,
   type Artefact,
@@ -35,8 +36,8 @@ export default function ArtefactsPage() {
     <div>
       <PageHeader eyebrow="Saved" title="Artefacts">
         <div className="relative">
-          <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-[10px] text-[var(--color-fg-muted)]">
-            ⌕
+          <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--color-fg-muted)]">
+            <Search size={12} strokeWidth={1.75} aria-hidden />
           </span>
           <input
             value={q}
@@ -74,11 +75,12 @@ export default function ArtefactsPage() {
 
       {shown.length === 0 ? (
         <EmptyState
+          icon={<Diamond size={28} strokeWidth={1.25} aria-hidden />}
           title="No artefacts yet"
           hint="Save a research answer or debate verdict to see it here."
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {shown.map((a, i) => (
             <div
               key={a.id}
@@ -118,15 +120,13 @@ export default function ArtefactsPage() {
               <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-[var(--color-fg-muted)]">
                 {open.title}
               </span>
-              <button
+              <IconButton
+                icon={X}
+                label="Close"
+                variant="ghost"
+                size="sm"
                 onClick={() => setOpen(null)}
-                aria-label="Close"
-                className="rounded-full p-1.5 text-[var(--color-fg-muted)] transition-colors hover:bg-[var(--color-border)] hover:text-[var(--color-fg)]"
-              >
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </button>
+              />
             </div>
 
             <ArtefactDetail artefact={open} />
