@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { LucideIcon } from "lucide-react";
+import { Terminal, MessagesSquare, Diamond, ArrowRight, Star } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { KPI, Card, PageHeader, SectionCard } from "@/app/_ui";
+import { KPI, Card, PageHeader, SectionCard, Eyebrow } from "@/app/_ui";
 import { useArtefacts } from "@/lib/artefacts";
 import { FALLBACK_STATS } from "@/lib/seed";
 import { listPublicRuns } from "@/lib/runs";
 import { timeAgo, absoluteTime } from "@/lib/time";
 
-const TILES = [
-  { href: "/research", label: "Ask Research", glyph: "›_", desc: "Cited answers across every source." },
-  { href: "/debate", label: "Run a Debate", glyph: "⇄", desc: "Watch the agents deliberate live." },
-  { href: "/artefacts", label: "Browse Artefacts", glyph: "◇", desc: "Your saved answers and verdicts." },
+const TILES: { href: string; label: string; icon: LucideIcon; desc: string }[] = [
+  { href: "/research", label: "Ask Research", icon: Terminal, desc: "Cited answers across every source." },
+  { href: "/debate", label: "Run a Debate", icon: MessagesSquare, desc: "Watch the agents deliberate live." },
+  { href: "/artefacts", label: "Browse Artefacts", icon: Diamond, desc: "Your saved answers and verdicts." },
 ];
 
 const KIND_LABEL: Record<string, string> = {
@@ -81,115 +83,137 @@ export default function DashboardPage() {
       </PageHeader>
 
       {/* ── KPI strip ──────────────────────────────────────────────────── */}
-      <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s, i) => (
-          <div
-            key={s.label}
-            className="relative"
-            style={{ animation: `fadeSlideIn 0.35s ease ${i * 55}ms both` }}
-          >
-            {/* Crimson hairline marks live data */}
-            {s.live && (
-              <span
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px rounded-t-lg bg-[var(--color-accent)] opacity-60"
-              />
-            )}
-            <KPI label={s.label} value={s.value} />
-          </div>
-        ))}
+      <section className="mb-10">
+        <Eyebrow className="mb-3">Overview</Eyebrow>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((s, i) => (
+            <div
+              key={s.label}
+              className="relative"
+              style={{ animation: `fadeSlideIn 0.35s ease ${i * 55}ms both` }}
+            >
+              {/* Crimson hairline marks live data */}
+              {s.live && (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px rounded-t-lg bg-[var(--color-accent)] opacity-60"
+                />
+              )}
+              <KPI label={s.label} value={s.value} />
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* ── Quick-launch tiles ─────────────────────────────────────────── */}
-      <section className="mb-8 grid gap-4 sm:grid-cols-3">
-        {TILES.map((t, i) => (
-          <Link
-            key={t.href}
-            href={t.href}
-            className="group"
-            style={{ animation: `fadeSlideIn 0.35s ease ${220 + i * 55}ms both` }}
-          >
-            <Card glow className="relative h-full overflow-hidden">
-              {/* Large watermark glyph — depth without noise */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -right-2 -top-3 select-none font-mono text-7xl font-bold leading-none text-[var(--color-fg)] opacity-[0.04] transition-opacity duration-300 group-hover:opacity-[0.08]"
+      <section className="mb-10">
+        <Eyebrow className="mb-3">Quick actions</Eyebrow>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {TILES.map((t, i) => {
+            const Icon = t.icon;
+            return (
+              <Link
+                key={t.href}
+                href={t.href}
+                className="group"
+                style={{ animation: `fadeSlideIn 0.35s ease ${220 + i * 55}ms both` }}
               >
-                {t.glyph}
-              </span>
+                <Card glow className="relative h-full overflow-hidden">
+                  {/* Large watermark icon — depth without noise */}
+                  <Icon
+                    aria-hidden
+                    strokeWidth={1}
+                    className="pointer-events-none absolute -right-3 -top-3 h-24 w-24 select-none text-[var(--color-fg)] opacity-[0.04] transition-opacity duration-300 group-hover:opacity-[0.08]"
+                  />
 
-              <div className="relative z-10">
-                <div className="font-mono text-xs uppercase tracking-widest text-[var(--color-accent)]">
-                  {t.glyph}
-                </div>
-                <h2 className="mt-3 text-lg text-[var(--color-fg)]">{t.label}</h2>
-                <p className="mt-2 text-sm text-[var(--color-fg-muted)]">{t.desc}</p>
+                  <div className="relative z-10">
+                    <div className="inline-flex items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-accent-soft)] p-2 text-[var(--color-accent)]">
+                      <Icon size={16} strokeWidth={1.75} aria-hidden="true" />
+                    </div>
+                    <h2 className="mt-3 text-lg text-[var(--color-fg)]">{t.label}</h2>
+                    <p className="mt-2 text-sm text-[var(--color-fg-muted)]">{t.desc}</p>
 
-                {/* Hover CTA — slides in on hover */}
-                <div className="mt-5 flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-[var(--color-accent)] opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                  <span>Open</span>
-                  <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
-                </div>
-              </div>
-            </Card>
-          </Link>
-        ))}
+                    {/* Hover CTA — slides in on hover */}
+                    <div className="mt-5 flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-[var(--color-accent)] opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                      <span>Open</span>
+                      <ArrowRight
+                        size={12}
+                        strokeWidth={2}
+                        aria-hidden="true"
+                        className="transition-transform duration-200 group-hover:translate-x-0.5"
+                      />
+                    </div>
+                  </div>
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
       </section>
 
       {/* ── Info cards ─────────────────────────────────────────────────── */}
-      <section className="grid gap-6 lg:grid-cols-2">
-        <SectionCard title="Recent activity">
-          {artefacts.length === 0 ? (
-            <p className="text-sm text-[var(--color-fg-muted)]">No activity yet.</p>
-          ) : (
-            <ul className="divide-y divide-[var(--color-border)]">
-              {artefacts.slice(0, 6).map((a) => (
-                <li
-                  key={a.id}
-                  className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
-                >
-                  <span className="shrink-0 rounded border border-[var(--color-border)] bg-[var(--color-surface-3)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-[var(--color-fg-muted)]">
-                    {KIND_LABEL[a.kind] ?? a.kind}
-                  </span>
-                  <span className="flex-1 truncate text-sm text-[var(--color-fg-dim)]">
-                    {a.title}
-                  </span>
-                  <span className="shrink-0 font-mono text-[10px] tabular-nums text-[var(--color-fg-muted)]">
-                    {timeAgo(a.createdAt)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
-
-        <SectionCard title="Pinned artefacts">
-          {pinned.length === 0 ? (
-            <p className="text-sm text-[var(--color-fg-muted)]">Star an artefact to pin it here.</p>
-          ) : (
-            <ul className="divide-y divide-[var(--color-border)]">
-              {pinned.map((a) => (
-                <li key={a.id} className="py-2.5 first:pt-0 last:pb-0">
-                  <Link href="/artefacts" className="group flex items-center gap-3">
-                    <span className="shrink-0 text-xs text-[var(--color-accent)]">★</span>
-                    <span className="flex-1 truncate text-sm text-[var(--color-fg-dim)] transition-colors group-hover:text-[var(--color-fg)]">
-                      {a.title}
-                    </span>
+      <section>
+        <Eyebrow className="mb-3">Activity</Eyebrow>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <SectionCard title="Recent activity">
+            {artefacts.length === 0 ? (
+              <p className="text-sm text-[var(--color-fg-muted)]">No activity yet.</p>
+            ) : (
+              <ul className="divide-y divide-[var(--color-border)]">
+                {artefacts.slice(0, 6).map((a) => (
+                  <li
+                    key={a.id}
+                    className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+                  >
                     <span className="shrink-0 rounded border border-[var(--color-border)] bg-[var(--color-surface-3)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-[var(--color-fg-muted)]">
                       {KIND_LABEL[a.kind] ?? a.kind}
                     </span>
-                    <span
-                      title={absoluteTime(a.createdAt)}
-                      className="shrink-0 font-mono text-[10px] tabular-nums text-[var(--color-fg-muted)]"
-                    >
+                    <span className="flex-1 truncate text-sm text-[var(--color-fg-dim)]">
+                      {a.title}
+                    </span>
+                    <span className="shrink-0 font-mono text-[10px] tabular-nums text-[var(--color-fg-muted)]">
                       {timeAgo(a.createdAt)}
                     </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </SectionCard>
+
+          <SectionCard title="Pinned artefacts">
+            {pinned.length === 0 ? (
+              <p className="text-sm text-[var(--color-fg-muted)]">Star an artefact to pin it here.</p>
+            ) : (
+              <ul className="divide-y divide-[var(--color-border)]">
+                {pinned.map((a) => (
+                  <li key={a.id} className="py-2.5 first:pt-0 last:pb-0">
+                    <Link href="/artefacts" className="group flex items-center gap-3">
+                      <Star
+                        size={13}
+                        strokeWidth={0}
+                        fill="currentColor"
+                        aria-hidden="true"
+                        className="shrink-0 text-[var(--color-accent)]"
+                      />
+                      <span className="flex-1 truncate text-sm text-[var(--color-fg-dim)] transition-colors group-hover:text-[var(--color-fg)]">
+                        {a.title}
+                      </span>
+                      <span className="shrink-0 rounded border border-[var(--color-border)] bg-[var(--color-surface-3)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-[var(--color-fg-muted)]">
+                        {KIND_LABEL[a.kind] ?? a.kind}
+                      </span>
+                      <span
+                        title={absoluteTime(a.createdAt)}
+                        className="shrink-0 font-mono text-[10px] tabular-nums text-[var(--color-fg-muted)]"
+                      >
+                        {timeAgo(a.createdAt)}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </SectionCard>
+        </div>
       </section>
     </div>
   );
