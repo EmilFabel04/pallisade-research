@@ -2,7 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "@/lib/api";
-import { Badge, Button, Card, EmptyState, SectionCard, Skeleton, toast } from "@/app/_ui";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  GoogleDriveIcon,
+  OneDriveIcon,
+  SectionCard,
+  SharePointIcon,
+  Skeleton,
+  toast,
+} from "@/app/_ui";
 import {
   type OrgDocument,
   deleteOrgDocument,
@@ -11,9 +22,9 @@ import {
 } from "@/lib/orgDocuments";
 
 const CLOUD_SOURCES = [
-  { id: "google_drive", label: "Google Drive" },
-  { id: "onedrive", label: "OneDrive" },
-  { id: "sharepoint", label: "SharePoint" },
+  { id: "google_drive", label: "Google Drive", Icon: GoogleDriveIcon },
+  { id: "onedrive", label: "OneDrive", Icon: OneDriveIcon },
+  { id: "sharepoint", label: "SharePoint", Icon: SharePointIcon },
 ] as const;
 
 function errorDetail(e: unknown): string {
@@ -101,7 +112,10 @@ export function DocsPanel() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {CLOUD_SOURCES.map((s) => (
             <Card key={s.id} className="flex items-center justify-between gap-3">
-              <span className="text-sm text-[var(--color-fg)]">{s.label}</span>
+              <span className="flex items-center gap-2 text-sm text-[var(--color-fg)]">
+                <s.Icon size={18} />
+                {s.label}
+              </span>
               <div className="flex items-center gap-2">
                 <Badge tone="info">Preview</Badge>
                 <Button variant="secondary" disabled>
