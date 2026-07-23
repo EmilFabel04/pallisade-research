@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ArrowUpRight, Download, Star } from "lucide-react";
 import { research, type ChatHistoryItem, type CitedAnswer } from "@/lib/research";
 import { useRevealedText } from "@/lib/useRevealedText";
 import { ThinkingSequence } from "./_ui/ThinkingSequence";
@@ -8,7 +9,7 @@ import { SERIF, inlineSegments, stripBlockMarkdown } from "@/lib/research-format
 import { Artifact } from "@/app/_ui/research/Artifact";
 import { History } from "@/app/_ui/research/History";
 import { saveArtefact } from "@/lib/artefacts";
-import { toast, Segmented, Eyebrow, Button } from "@/app/_ui";
+import { toast, Segmented, Eyebrow, Button, MicButton } from "@/app/_ui";
 import { researchPdfUrl, openPdf } from "@/lib/export";
 
 type View = "chat" | "history";
@@ -213,27 +214,33 @@ export default function ResearchDashboard() {
                   {messages.map((m) =>
                     m.role === "user" ? (
                       <div key={m.id} className="flex justify-end animate-[slideInRight_0.3s_ease-out_both]">
-                        <div className="max-w-[80%] rounded-[12px] border-l-2 border-[var(--color-accent)] bg-[var(--color-surface-2)] px-4 py-2.5 font-mono text-[13px] text-[var(--color-fg)]">
+                        <div className="elevated max-w-[80%] rounded-[12px] border-l-2 border-[var(--color-accent)] px-4 py-3 font-mono text-[13px] text-[var(--color-fg)]">
                           {m.content}
                         </div>
                       </div>
                     ) : (
-                      <div key={m.id} className="space-y-2 animate-[fadeSlideIn_0.35s_ease-out_both]">
+                      <div
+                        key={m.id}
+                        className="elevated space-y-3 rounded-[14px] border border-[var(--color-border)] px-5 py-4 animate-[fadeSlideIn_0.35s_ease-out_both]"
+                      >
                         <AssistantNarration text={m.content} reveal={m.id === lastId} />
                         {m.answer && (
                           <div className="flex flex-wrap items-center gap-2 pt-1">
                             <button
                               onClick={() => setActiveId(m.id)}
-                              className={`rounded-md border px-3 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors ${
+                              className={`inline-flex items-center gap-1 rounded-md border px-3 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors ${
                                 activeId === m.id
                                   ? "border-[var(--color-accent)] text-[var(--color-fg)]"
                                   : "border-[var(--color-border)] text-[var(--color-fg-dim)] hover:border-[var(--color-fg-muted)]"
                               }`}
                             >
-                              {m.answer.claims.length} cited findings ↗
+                              {m.answer.claims.length} cited findings
+                              <ArrowUpRight size={12} strokeWidth={2} aria-hidden="true" />
                             </button>
                             {m.answer.claims.length > 0 && (
-                              <button
+                              <Button
+                                size="sm"
+                                variant="ghost"
                                 onClick={() => {
                                   saveArtefact({
                                     kind: "research",
@@ -244,18 +251,21 @@ export default function ResearchDashboard() {
                                   setSavedIds((s) => new Set(s).add(m.id));
                                   toast.success("Saved to Artefacts");
                                 }}
-                                className="rounded-md border border-[var(--color-border)] px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-[var(--color-fg-dim)] hover:border-[var(--color-accent)] hover:text-[var(--color-fg)]"
+                                className="gap-1"
                               >
-                                ★ Save
-                              </button>
+                                <Star size={12} strokeWidth={0} fill="currentColor" aria-hidden="true" />
+                                Save
+                              </Button>
                             )}
                             {convId && (
                               <Button
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => openPdf(researchPdfUrl(convId))}
+                                className="gap-1"
                               >
-                                ↓ PDF
+                                <Download size={12} strokeWidth={2} aria-hidden="true" />
+                                PDF
                               </Button>
                             )}
                             <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--color-fg-muted)]">
@@ -306,6 +316,7 @@ export default function ResearchDashboard() {
                   className="w-full bg-transparent font-mono text-sm text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)] focus:outline-none"
                   autoFocus
                 />
+                <MicButton onTranscript={(t) => setInput((v) => (v ? v + " " : "") + t.trim())} />
                 <Button type="submit" size="sm" disabled={pending || !input.trim()} className="shrink-0">
                   {pending ? "…" : "Ask"}
                 </Button>

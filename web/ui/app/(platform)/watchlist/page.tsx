@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PageHeader, EmptyState, Button } from "@/app/_ui";
+import { Plus, RefreshCw } from "lucide-react";
+import { PageHeader, EmptyState, IconButton } from "@/app/_ui";
 import { useWatchlist, ensureWatchlistSeeded } from "@/lib/watchlist";
 import { ApiError } from "@/lib/api";
 import { SEED_WATCHLIST } from "@/lib/seed";
@@ -46,13 +47,13 @@ export default function WatchlistPage() {
     <div>
       <PageHeader eyebrow="Markets" title="Watchlist">
         <div className="flex items-center gap-2">
-          <button
-            type="button"
+          <IconButton
+            icon={RefreshCw}
+            label="Refresh quotes"
+            variant="ghost"
+            size="sm"
             onClick={() => void refresh()}
-            className="rounded-md border border-[var(--color-border)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-fg-muted)] transition-all duration-150 hover:text-[var(--color-fg)] active:scale-95"
-          >
-            Refresh
-          </button>
+          />
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -67,9 +68,14 @@ export default function WatchlistPage() {
               aria-label="Add ticker"
               className="w-36 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-1.5 font-mono text-xs uppercase text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)] transition-colors focus:border-[var(--color-accent)] focus:outline-none"
             />
-            <Button type="submit" size="sm" disabled={busy}>
-              {busy ? "Adding…" : "Add"}
-            </Button>
+            <IconButton
+              type="submit"
+              icon={Plus}
+              label={busy ? "Adding ticker…" : "Add ticker"}
+              variant="primary"
+              size="sm"
+              disabled={busy}
+            />
           </form>
         </div>
       </PageHeader>
@@ -116,7 +122,7 @@ export default function WatchlistPage() {
       )}
 
       {loading ? (
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-8 text-center font-mono text-xs text-[var(--color-fg-muted)]">
+        <div className="elevated rounded-lg border border-[var(--color-border)] px-4 py-8 text-center font-mono text-xs text-[var(--color-fg-muted)]">
           Loading watchlist…
         </div>
       ) : items.length === 0 ? (
@@ -130,21 +136,21 @@ export default function WatchlistPage() {
           />
         )
       ) : (
-        <div className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] shadow-[var(--shadow-card)]">
+        <div className="elevated overflow-hidden rounded-lg border border-[var(--color-border)]">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--color-border)] text-left font-mono text-[10px] uppercase tracking-widest text-[var(--color-fg-muted)]">
-                <th className="px-4 py-3">Ticker</th>
-                <th className="px-4 py-3 text-right">Price</th>
-                <th className="px-4 py-3 text-right">Chg %</th>
-                <th className="px-4 py-3 text-right">Mkt Cap</th>
-                <th className="px-4 py-3 text-right">P/E</th>
-                <th className="px-4 py-3">Trend</th>
-                <th className="px-4 py-3">Conviction</th>
-                <th className="px-4 py-3">Coverage</th>
-                <th className="px-4 py-3">Note</th>
-                <th className="px-4 py-3 text-right">Added</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <th className="px-4 py-2.5">Ticker</th>
+                <th className="px-4 py-2.5 text-right">Price</th>
+                <th className="px-4 py-2.5 text-right">Chg %</th>
+                <th className="px-4 py-2.5 text-right">Mkt Cap</th>
+                <th className="px-4 py-2.5 text-right">P/E</th>
+                <th className="px-4 py-2.5">Trend</th>
+                <th className="px-4 py-2.5">Conviction</th>
+                <th className="px-4 py-2.5">Coverage</th>
+                <th className="px-4 py-2.5">Note</th>
+                <th className="px-4 py-2.5 text-right">Added</th>
+                <th className="px-4 py-2.5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>

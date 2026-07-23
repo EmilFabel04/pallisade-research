@@ -1,5 +1,6 @@
 "use client";
 
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { Badge } from "@/app/_ui";
 import { SPEAKER_META, type DebateTurn } from "@/lib/debate";
 import type { DebateRunState } from "./useDebateStream";
@@ -19,23 +20,29 @@ function Bubble({
   const tone = isBull ? "var(--color-positive)" : "var(--color-negative)";
   const key = `turn-${turn.seq}`;
   const badgeTone = turn.speaker === "bull" ? "bull" : turn.speaker === "bear" ? "bear" : "neutral";
+  const SideIcon = turn.speaker === "bear" ? TrendingDown : TrendingUp;
   return (
-    <div className={`flex gap-2 ${isBull ? "flex-row" : "flex-row-reverse"} items-end`}>
+    <div className={`flex gap-2.5 ${isBull ? "flex-row" : "flex-row-reverse"} items-end`}>
       <div
-        className="flex h-7 w-7 flex-none items-center justify-center rounded-full border font-mono text-[10px] font-bold"
+        className="flex h-7 w-7 flex-none items-center justify-center rounded-full border"
         style={{ borderColor: `color-mix(in srgb, ${tone} 40%, transparent)`,
                  background: `color-mix(in srgb, ${tone} 15%, transparent)`, color: tone }}
       >
-        {meta.label[0]}
+        <SideIcon size={14} strokeWidth={2} aria-hidden="true" />
       </div>
       <div
-        className={`max-w-[76%] rounded-xl border px-3 py-2 ${isBull ? "rounded-bl-sm" : "rounded-br-sm"}`}
+        className={`max-w-[76%] rounded-xl border px-3.5 py-2.5 ${isBull ? "rounded-bl-sm" : "rounded-br-sm"}`}
         style={{ borderColor: `color-mix(in srgb, ${tone} 28%, transparent)`,
                  background: `color-mix(in srgb, ${tone} 8%, transparent)` }}
       >
         <CollapsibleMarkdown
           body={turn.text}
-          chip={<Badge tone={badgeTone}>{meta.label}</Badge>}
+          chip={
+            <Badge tone={badgeTone}>
+              <SideIcon size={11} strokeWidth={2} aria-hidden="true" />
+              {meta.label}
+            </Badge>
+          }
           timestamp={turn.ts}
           open={openMap?.[key]}
           onOpenChange={onOpen ? (o) => onOpen(key, o) : undefined}
@@ -47,7 +54,7 @@ function Bubble({
 
 function RoundDivider({ round }: { round: number }) {
   return (
-    <div className="my-1 flex items-center gap-2 opacity-50">
+    <div className="my-2 flex items-center gap-2 opacity-50">
       <span className="h-px flex-1 bg-[var(--color-border)]" />
       <span className="font-mono text-[9px] uppercase tracking-widest">Round {round}</span>
       <span className="h-px flex-1 bg-[var(--color-border)]" />
@@ -101,14 +108,14 @@ export function DebateTranscript({
 
   return (
     <section
-      className="rounded-lg border p-4"
+      className="rounded-lg border p-5"
       style={{ borderColor: "color-mix(in srgb, var(--color-accent) 40%, transparent)",
                background: "var(--color-accent-soft)" }}
     >
-      <div className="mb-3 font-mono text-[10px] uppercase tracking-widest text-[var(--color-accent)]">
+      <div className="mb-4 font-mono text-[10px] uppercase tracking-widest text-[var(--color-accent)]">
         The Debate {isLive ? "· live" : ""}
       </div>
-      <div className="space-y-2">
+      <div className="space-y-3">
         {rows}
         {isLive && <Typing />}
         {rows.length === 0 && isLive && (

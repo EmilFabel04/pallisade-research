@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { Scale } from "lucide-react";
 import { Badge } from "@/app/_ui";
 import { REPORT_LANES, parseFields, ratingTone, type LaneMeta } from "@/lib/debate";
 import type { DebateRunState } from "./useDebateStream";
 import { DebateTranscript } from "./DebateTranscript";
 import { CollapsibleMarkdown } from "./CollapsibleMarkdown";
 import { DebateSummary } from "./DebateSummary";
+import { STAGE_ICON } from "./DebatePipeline";
 
 function laneStatus(
   state: DebateRunState,
@@ -113,6 +115,7 @@ export function LaneBoard({
         {lanes.filter((l) => !l.verdict).map((lane, idx) => {
           const status = laneStatus(state, lanes.filter((l) => !l.verdict), lane.key, idx);
           const body = state.reports[lane.key];
+          const Icon = STAGE_ICON[lane.key];
           const dotClass = `h-1.5 w-1.5 rounded-full ${
             status === "done"
               ? "bg-[var(--color-positive)]"
@@ -123,7 +126,7 @@ export function LaneBoard({
           return (
             <li
               key={lane.key}
-              className={`rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 transition ${
+              className={`elevated rounded-lg border border-[var(--color-border)] p-4 transition ${
                 status === "pending" ? "opacity-50" : "opacity-100"
               }`}
             >
@@ -133,6 +136,9 @@ export function LaneBoard({
                   label={
                     <span className="flex items-center gap-2">
                       <span className={dotClass} />
+                      {Icon && (
+                        <Icon size={14} strokeWidth={1.75} className="text-[var(--color-fg-muted)]" />
+                      )}
                       {lane.agent}
                     </span>
                   }
@@ -145,6 +151,9 @@ export function LaneBoard({
                 <>
                   <div className="mb-2 flex items-center gap-2">
                     <span className={dotClass} />
+                    {Icon && (
+                      <Icon size={14} strokeWidth={1.75} className="text-[var(--color-fg-muted)]" />
+                    )}
                     <span className="font-mono text-sm">{lane.agent}</span>
                     <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--color-fg-muted)]">
                       {lane.role}
@@ -166,10 +175,20 @@ export function LaneBoard({
       {showVerdict && (
         <div id="verdict">
           {verdict && (
-            <div className="rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] p-5">
+            <div className="relative overflow-hidden rounded-xl border-2 border-[var(--color-accent)] bg-[var(--color-accent-soft)] p-6 shadow-[var(--shadow-accent-strong)]">
+              <Scale
+                aria-hidden
+                strokeWidth={1}
+                className="pointer-events-none absolute -right-4 -top-4 h-28 w-28 select-none text-[var(--color-accent)] opacity-[0.07]"
+              />
               <CollapsibleMarkdown
                 body={verdict}
-                label={<span className="font-medium">Portfolio Manager · verdict</span>}
+                label={
+                  <span className="flex items-center gap-2 text-base font-semibold text-[var(--color-fg)]">
+                    <Scale size={18} strokeWidth={1.75} className="shrink-0 text-[var(--color-accent)]" />
+                    Portfolio Manager · verdict
+                  </span>
+                }
                 chip={laneChip(verdictKey, verdict) ?? verdictRatingChip(verdict)}
                 timestamp={state.reportTs[verdictKey]}
                 open={openMap[verdictKey] ?? true}

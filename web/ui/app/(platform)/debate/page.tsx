@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ArrowLeft, Download } from "lucide-react";
 import { PageHeader, Button } from "@/app/_ui";
 import { createDebateRun, listDebateRuns, type DebateRunSummary } from "@/lib/debate";
 import { debatePdfUrl, openPdf } from "@/lib/export";
@@ -57,13 +58,15 @@ export default function DebatePage() {
           <div className="flex items-center justify-between">
             <button
               onClick={() => setRunId(null)}
-              className="font-mono text-[10px] uppercase tracking-wider text-[var(--color-fg-muted)] transition-colors duration-150 hover:text-[var(--color-fg)]"
+              className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-fg-muted)] transition-colors duration-150 hover:text-[var(--color-fg)]"
             >
-              ← New debate
+              <ArrowLeft size={12} strokeWidth={2} aria-hidden="true" />
+              New debate
             </button>
             {runId && state.phase === "done" && (
-              <Button size="sm" variant="ghost" onClick={() => openPdf(debatePdfUrl(runId))}>
-                ↓ PDF
+              <Button size="sm" variant="ghost" onClick={() => openPdf(debatePdfUrl(runId))} className="gap-1">
+                <Download size={12} strokeWidth={2} aria-hidden="true" />
+                PDF
               </Button>
             )}
           </div>

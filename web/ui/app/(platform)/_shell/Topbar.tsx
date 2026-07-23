@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { Search } from "lucide-react";
 import { NAV_ITEMS } from "./nav";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -18,10 +19,11 @@ export function Topbar({ onOpenPalette }: { onOpenPalette: () => void }) {
         <ThemeToggle />
         <button
           onClick={onOpenPalette}
-          className="flex items-center gap-2 rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs text-[var(--color-fg-muted)] hover:border-[var(--color-fg-muted)]"
+          className="flex items-center gap-2 rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs text-[var(--color-fg-muted)] transition-colors hover:border-[var(--color-fg-muted)] hover:text-[var(--color-fg-dim)]"
         >
+          <Search size={14} strokeWidth={1.75} aria-hidden="true" />
           Search…
-          <kbd className="font-mono text-[10px]">⌘K</kbd>
+          <kbd className="ml-1 rounded border border-[var(--color-border)] px-1 font-mono text-[10px]">⌘K</kbd>
         </button>
       </div>
     </header>

@@ -1,12 +1,20 @@
 "use client";
 
+import { Diamond, MessagesSquare, Star, Terminal, ClipboardList } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Artefact } from "@/lib/artefacts";
 
-const KIND_GLYPH: Record<Artefact["kind"], string> = {
-  research: "›_",
-  debate: "⇄",
-  clip: "◇",
+// Per-kind glyph → lucide icon. Falls back to `Diamond` (the same icon used
+// for the Artefacts nav item) for any kind not explicitly mapped.
+const KIND_ICON: Record<string, LucideIcon> = {
+  research: Terminal,
+  debate: MessagesSquare,
+  clip: ClipboardList,
 };
+
+function kindIcon(kind: string): LucideIcon {
+  return KIND_ICON[kind] ?? Diamond;
+}
 
 const KIND_HUE: Record<Artefact["kind"], string> = {
   research: "rgba(139,11,16,0.18)",
@@ -29,6 +37,7 @@ export function ArtefactCard({
   onOpen: () => void;
   onToggleStar: () => void;
 }) {
+  const Icon = kindIcon(artefact.kind);
   return (
     <div
       role="button"
@@ -37,12 +46,7 @@ export function ArtefactCard({
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") onOpen();
       }}
-      style={{
-        /* subtle top-edge inset glow lifts the card */
-        boxShadow:
-          "0 1px 0 0 rgba(255,255,255,0.04) inset, 0 12px 32px -16px rgba(0,0,0,0.9)",
-      }}
-      className="group relative flex flex-col overflow-hidden rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4 text-left transition-all duration-200 hover:-translate-y-px hover:border-[var(--color-accent)] hover:shadow-[0_0_0_1px_rgba(139,11,16,0.25),0_16px_40px_-16px_rgba(0,0,0,0.9)]"
+      className="elevated lift group relative flex cursor-pointer flex-col overflow-hidden rounded-[10px] border border-[var(--color-border)] p-4 text-left"
     >
       {/* crimson left-edge accent bar — appears on hover */}
       <span
@@ -59,9 +63,7 @@ export function ArtefactCard({
           }}
           className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em]"
         >
-          <span style={{ color: KIND_FG[artefact.kind] }} className="text-[11px] leading-none">
-            {KIND_GLYPH[artefact.kind]}
-          </span>
+          <Icon size={11} strokeWidth={2} aria-hidden />
           {artefact.kind}
         </span>
 
@@ -80,13 +82,13 @@ export function ArtefactCard({
             }
           }}
           className={[
-            "inline-flex h-6 w-6 items-center justify-center rounded-full text-sm transition-all duration-150",
+            "inline-flex h-6 w-6 items-center justify-center rounded-full transition-all duration-150",
             artefact.starred
               ? "scale-110 text-[var(--color-accent)]"
               : "text-[var(--color-fg-muted)] hover:scale-110 hover:text-[var(--color-fg-dim)]",
           ].join(" ")}
         >
-          {artefact.starred ? "★" : "☆"}
+          <Star size={13} strokeWidth={1.75} fill={artefact.starred ? "currentColor" : "none"} />
         </span>
       </div>
 

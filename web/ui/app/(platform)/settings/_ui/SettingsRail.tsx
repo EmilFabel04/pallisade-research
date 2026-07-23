@@ -2,18 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Plug, FileText, Palette, UserRound } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export interface SettingsSection {
   href: string;
   label: string;
-  glyph: string;
+  icon: LucideIcon;
 }
 
 export const SETTINGS_SECTIONS: SettingsSection[] = [
-  { href: "/settings/connectors", label: "Connectors", glyph: "⚙" },
-  { href: "/settings/documents", label: "Documents", glyph: "◇" },
-  { href: "/settings/appearance", label: "Appearance", glyph: "◐" },
-  { href: "/settings/account", label: "Account", glyph: "◎" },
+  { href: "/settings/connectors", label: "Connectors", icon: Plug },
+  { href: "/settings/documents", label: "Documents", icon: FileText },
+  { href: "/settings/appearance", label: "Appearance", icon: Palette },
+  { href: "/settings/account", label: "Account", icon: UserRound },
 ];
 
 export function SettingsRail() {
@@ -25,6 +27,7 @@ export function SettingsRail() {
     >
       {SETTINGS_SECTIONS.map((s) => {
         const active = path === s.href || path.startsWith(s.href + "/");
+        const Icon = s.icon;
         return (
           <Link
             key={s.href}
@@ -36,7 +39,7 @@ export function SettingsRail() {
                 : "border-transparent text-[var(--color-fg-dim)] hover:text-[var(--color-fg)]"
             }`}
           >
-            <span className="text-[13px] leading-none">{s.glyph}</span>
+            <Icon size={15} strokeWidth={1.75} aria-hidden="true" />
             {s.label}
           </Link>
         );
