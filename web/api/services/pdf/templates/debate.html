@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block body %}
+<section class="cover">
+  <div class="wordmark"><span class="mark">◆</span> Pallisade</div>
+  <div class="eyebrow">Investment Debate</div>
+  <h1 class="title">{{ view.ticker }}</h1>
+  <div class="date">{{ view.trade_date }} · generated {{ view.generated_at }}</div>
+</section>
+
+<h1 class="page-break">Verdict</h1>
+{% if view.verdict %}
+<dl class="verdict">
+  {% for k in ["Rating", "Conviction", "Fair Value", "Time Horizon"] %}
+    {% if view.verdict.get(k) %}<dt>{{ k }}</dt><dd>{{ view.verdict[k] }}</dd>{% endif %}
+  {% endfor %}
+</dl>
+{% else %}
+<p class="empty">No verdict recorded.</p>
+{% endif %}
+
+<h1 class="page-break">Analyst Reports</h1>
+{% for r in view.reports %}
+  <h2>{{ r.label }}</h2>
+  {{ r.markdown | markdown }}
+{% endfor %}
+
+<h1 class="page-break">Bull vs Bear</h1>
+{% if view.turns %}
+  {% set ns = namespace(round=0) %}
+  {% for t in view.turns %}
+    {% if t.round != ns.round %}
+      {% set ns.round = t.round %}
+      <div class="round-label">Round {{ t.round }}</div>
+    {% endif %}
+    <div class="turn {{ t.speaker }}">
+      <div class="who">{{ t.speaker }}</div>
+      {{ t.text | markdown }}
+    </div>
+  {% endfor %}
+{% else %}
+  <p class="empty">No transcript recorded for this debate.</p>
+{% endif %}
+{% endblock %}

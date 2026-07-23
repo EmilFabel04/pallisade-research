@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PageHeader } from "@/app/_ui";
+import { PageHeader, Button } from "@/app/_ui";
 import { createDebateRun, listDebateRuns, type DebateRunSummary } from "@/lib/debate";
+import { debatePdfUrl, openPdf } from "@/lib/export";
 import { Launchpad } from "./_ui/Launchpad";
 import { LaneBoard } from "./_ui/LaneBoard";
 import { DebatePipeline } from "./_ui/DebatePipeline";
@@ -53,12 +54,19 @@ export default function DebatePage() {
 
       {runId ? (
         <div className="space-y-6">
-          <button
-            onClick={() => setRunId(null)}
-            className="font-mono text-[10px] uppercase tracking-wider text-[var(--color-fg-muted)] transition-colors duration-150 hover:text-[var(--color-fg)]"
-          >
-            ← New debate
-          </button>
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setRunId(null)}
+              className="font-mono text-[10px] uppercase tracking-wider text-[var(--color-fg-muted)] transition-colors duration-150 hover:text-[var(--color-fg)]"
+            >
+              ← New debate
+            </button>
+            {runId && state.phase === "done" && (
+              <Button size="sm" variant="ghost" onClick={() => openPdf(debatePdfUrl(runId))}>
+                ↓ PDF
+              </Button>
+            )}
+          </div>
           <LaneBoard state={state} />
         </div>
       ) : (

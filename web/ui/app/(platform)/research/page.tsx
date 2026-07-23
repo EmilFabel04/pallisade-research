@@ -9,6 +9,7 @@ import { Artifact } from "@/app/_ui/research/Artifact";
 import { History } from "@/app/_ui/research/History";
 import { saveArtefact } from "@/lib/artefacts";
 import { toast, Segmented, Eyebrow, Button } from "@/app/_ui";
+import { researchPdfUrl, openPdf } from "@/lib/export";
 
 type View = "chat" | "history";
 
@@ -247,6 +248,15 @@ export default function ResearchDashboard() {
                               >
                                 ★ Save
                               </button>
+                            )}
+                            {convId && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => openPdf(researchPdfUrl(convId))}
+                              >
+                                ↓ PDF
+                              </Button>
                             )}
                             <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--color-fg-muted)]">
                               {m.answer.sources_used.join(" · ") || "no sources"}
