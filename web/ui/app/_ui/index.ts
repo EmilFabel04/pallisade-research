@@ -17,3 +17,7 @@ export { Eyebrow } from "./Eyebrow";
 export { SectionCard } from "./SectionCard";
 export { Collapsible, type CollapsibleProps } from "./Collapsible";
 export { Segmented, type SegmentedOption } from "./Segmented";
+export { IconButton } from "./IconButton";
+export { GoogleDriveIcon } from "./brand/GoogleDriveIcon";
+export { OneDriveIcon } from "./brand/OneDriveIcon";
+export { SharePointIcon } from "./brand/SharePointIcon";
