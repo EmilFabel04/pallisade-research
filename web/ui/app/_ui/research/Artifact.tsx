@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ArrowUpRight } from "lucide-react";
 import type { CitedAnswer, Claim, ResearchRecord } from "@/lib/research";
 import { SERIF, formatRecord } from "@/lib/research-format";
 
@@ -16,7 +17,12 @@ function SourceChip({ p }: { p: ResearchRecord["provenance"] }) {
       <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
       {p.source}
       {p.as_of && <span className="text-[var(--color-fg-muted)]">· {p.as_of}</span>}
-      <span className="opacity-40 transition-opacity group-hover:opacity-100">↗</span>
+      <ArrowUpRight
+        size={11}
+        strokeWidth={2}
+        className="opacity-40 transition-opacity group-hover:opacity-100"
+        aria-hidden="true"
+      />
     </a>
   );
 }
@@ -26,7 +32,7 @@ function ClaimCard({ claim, byId }: { claim: Claim; byId: Map<string, ResearchRe
   if (records.length === 0) return null;
   const { label, display } = formatRecord(records[0]);
   return (
-    <div className="flex flex-col justify-between rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 transition-colors hover:border-[var(--color-fg-muted)]">
+    <div className="elevated flex flex-col justify-between rounded-[12px] border border-[var(--color-border)] p-4 transition-colors hover:border-[var(--color-fg-muted)]">
       <div>
         <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--color-fg-muted)]">
           {label}
@@ -93,7 +99,7 @@ export function Artifact({ answer }: { answer: CitedAnswer }) {
 
       <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
         {/* trust strip */}
-        <div className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+        <div className="elevated rounded-[12px] border border-[var(--color-border)] p-4">
           <div className="grid grid-cols-3 gap-3">
             <div>
               <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--color-fg-muted)]">Drawn</p>
@@ -118,7 +124,7 @@ export function Artifact({ answer }: { answer: CitedAnswer }) {
 
         {/* finding cards */}
         {answer.claims.length === 0 ? (
-          <p className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-5 text-sm text-[var(--color-fg-muted)]">
+          <p className="elevated rounded-[12px] border border-[var(--color-border)] px-4 py-5 text-sm text-[var(--color-fg-muted)]">
             No grounded findings for this query.
           </p>
         ) : (
