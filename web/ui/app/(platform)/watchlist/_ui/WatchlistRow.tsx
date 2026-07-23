@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Sparkline, Badge } from "@/app/_ui";
+import { TrendingUp, TrendingDown, Minus, X } from "lucide-react";
+import { Sparkline, Badge, IconButton } from "@/app/_ui";
 import { useArtefacts } from "@/lib/artefacts";
 import type { WatchlistItem, Conviction } from "@/lib/watchlist";
 import { timeAgo, absoluteTime } from "@/lib/time";
@@ -41,12 +42,8 @@ export function WatchlistRow({
 
   const tone =
     item.changePct > 0 ? "ok" : item.changePct < 0 ? "err" : "neutral";
-  const changeColor =
-    item.changePct > 0
-      ? "text-[var(--color-positive)]"
-      : item.changePct < 0
-      ? "text-[var(--color-negative)]"
-      : "text-[var(--color-fg-muted)]";
+  const TrendIcon =
+    item.changePct > 0 ? TrendingUp : item.changePct < 0 ? TrendingDown : Minus;
 
   function cycleConviction() {
     const idx = CONVICTIONS.indexOf(item.conviction);
@@ -64,39 +61,40 @@ export function WatchlistRow({
   }
 
   return (
-    <tr className="border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--overlay-hairline)]">
-      <td className="px-4 py-3">
-        <div className="font-mono text-[var(--color-fg)]">{item.ticker}</div>
+    <tr className="border-b border-[var(--color-border)] last:border-0 transition-colors duration-150 hover:bg-[var(--overlay-hairline)]">
+      <td className="px-4 py-2.5">
+        <div className="font-mono text-[13px] font-medium text-[var(--color-fg)]">{item.ticker}</div>
         <div className="text-[11px] text-[var(--color-fg-muted)]">{item.name}</div>
       </td>
-      <td className="px-4 py-3 text-right font-mono tabular-nums text-[var(--color-fg)]">
+      <td className="px-4 py-2.5 text-right font-mono tabular-nums text-[var(--color-fg)]">
         {item.price ? item.price.toFixed(2) : "—"}
       </td>
-      <td className={`px-4 py-3 text-right font-mono tabular-nums ${changeColor}`}>
+      <td className="px-4 py-2.5 text-right">
         {item.price ? (
-          <>
+          <Badge tone={tone}>
+            <TrendIcon size={11} strokeWidth={2} aria-hidden="true" />
             {item.changePct > 0 ? "+" : ""}
             {item.changePct.toFixed(2)}%
-          </>
+          </Badge>
         ) : (
-          "—"
+          <span className="font-mono text-xs text-[var(--color-fg-muted)]">—</span>
         )}
       </td>
-      <td className="px-4 py-3 text-right font-mono tabular-nums text-[var(--color-fg-dim)]">
+      <td className="px-4 py-2.5 text-right font-mono tabular-nums text-[var(--color-fg-dim)]">
         {item.marketCap}
       </td>
-      <td className="px-4 py-3 text-right font-mono tabular-nums text-[var(--color-fg-dim)]">
+      <td className="px-4 py-2.5 text-right font-mono tabular-nums text-[var(--color-fg-dim)]">
         {item.pe ? item.pe.toFixed(1) : "—"}
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-2.5">
         <Sparkline data={item.spark} tone={tone} />
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-2.5">
         <button onClick={cycleConviction} aria-label={`Conviction: ${item.conviction}. Click to cycle.`} title="Click to change">
           <Badge tone={CONVICTION_TONE[item.conviction]}>{item.conviction}</Badge>
         </button>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-2.5">
         {coverage ? (
           <Badge tone="info">{coverage.kind}</Badge>
         ) : (
@@ -105,7 +103,7 @@ export function WatchlistRow({
           </span>
         )}
       </td>
-      <td className="px-4 py-3 align-top">
+      <td className="px-4 py-2.5 align-top">
         {editingNote ? (
           <input
             value={noteDraft}
@@ -135,7 +133,7 @@ export function WatchlistRow({
           </button>
         )}
       </td>
-      <td className="px-4 py-3 text-right">
+      <td className="px-4 py-2.5 text-right">
         <span
           title={absoluteTime(item.addedAt)}
           className="font-mono text-[10px] tabular-nums text-[var(--color-fg-muted)]"
@@ -143,8 +141,8 @@ export function WatchlistRow({
           {timeAgo(item.addedAt)}
         </span>
       </td>
-      <td className="px-4 py-3">
-        <div className="flex items-center justify-end gap-2">
+      <td className="px-4 py-2.5">
+        <div className="flex items-center justify-end gap-1.5">
           <button
             onClick={onResearch}
             className="rounded-md border border-[var(--color-border)] px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-[var(--color-fg-dim)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-fg)]"
@@ -157,13 +155,14 @@ export function WatchlistRow({
           >
             Debate
           </button>
-          <button
+          <IconButton
+            icon={X}
+            label={`Remove ${item.ticker}`}
+            variant="ghost"
+            size="sm"
             onClick={onRemove}
-            aria-label={`Remove ${item.ticker}`}
-            className="rounded-md border border-transparent px-2 py-1 font-mono text-[12px] text-[var(--color-fg-muted)] transition-colors hover:text-[var(--color-negative)]"
-          >
-            ×
-          </button>
+            className="hover:!border-[var(--color-negative)] hover:!text-[var(--color-negative)]"
+          />
         </div>
       </td>
     </tr>
