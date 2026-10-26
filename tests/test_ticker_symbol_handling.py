@@ -2,8 +2,11 @@ import unittest
 
 import pytest
 
-from cli.utils import normalize_ticker_symbol
-from tradingagents.agents.utils.agent_utils import build_instrument_context
+# normalize_ticker_symbol lives in the upstream TradingAgents CLI, which was not carried into this repo.
+pytest.importorskip("cli", reason="upstream TradingAgents CLI is not part of this repo")
+
+from cli.utils import normalize_ticker_symbol  # noqa: E402
+from tradingagents.agents.utils.agent_utils import build_instrument_context  # noqa: E402
 
 
 @pytest.mark.unit

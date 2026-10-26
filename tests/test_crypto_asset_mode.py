@@ -1,8 +1,13 @@
 import unittest
 
-from cli.models import AnalystType, AssetType
-from cli.utils import detect_asset_type, filter_analysts_for_asset_type
-from tradingagents.graph.propagation import Propagator
+import pytest
+
+# These cover the upstream TradingAgents CLI, which was not carried into this repo.
+pytest.importorskip("cli", reason="upstream TradingAgents CLI is not part of this repo")
+
+from cli.models import AnalystType, AssetType  # noqa: E402
+from cli.utils import detect_asset_type, filter_analysts_for_asset_type  # noqa: E402
+from tradingagents.graph.propagation import Propagator  # noqa: E402
 
 
 class CryptoAssetModeTests(unittest.TestCase):
