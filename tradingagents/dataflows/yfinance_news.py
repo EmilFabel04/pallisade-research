@@ -1,3 +1,4 @@
+# Modified for Pallisade Research by Emil Fabel, 2026. Original: TradingAgents (Apache-2.0).
 """yfinance-based news data fetching functions."""
 
 from typing import Optional

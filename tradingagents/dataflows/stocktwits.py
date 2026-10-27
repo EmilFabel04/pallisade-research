@@ -1,3 +1,4 @@
+# Modified for Pallisade Research by Emil Fabel, 2026. Original: TradingAgents (Apache-2.0).
 """StockTwits public symbol-stream fetcher.
 
 StockTwits exposes a per-symbol message stream at

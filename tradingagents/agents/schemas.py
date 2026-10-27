@@ -1,3 +1,4 @@
+# Modified for Pallisade Research by Emil Fabel, 2026. Original: TradingAgents (Apache-2.0).
 """Pydantic schemas used by agents that produce structured output.
 
 The framework's primary artifact is still prose: each agent's natural-language

@@ -142,13 +142,12 @@ This is a working prototype, not a hardened product:
 - **The rule-based planner only recognises a few hard-coded tickers.** It is the fallback path; the LLM planner handles everything else.
 - **The memo checker has no UI page at the moment.**
 - **The `Dockerfile` and the non-database services in `docker-compose.yml` are left over from the original monorepo,** and their entrypoint no longer exists. Use the commands above. Only the `pallisade-db` service is current.
-- **`docs/` holds the design specs and implementation plans** written while building it, including for features that were later dropped.
 
 Nothing here is financial, investment or trading advice.
 
 ## Credits and license
 
-`tradingagents/` is a fork of [TradingAgents](https://github.com/TauricResearch/TradingAgents) by Tauric Research (Yijia Xiao, Edward Sun, Di Luo and Wei Wang; [arXiv:2412.20138](https://arxiv.org/abs/2412.20138)), taken in May 2026 and released under the Apache License 2.0. The multi-agent graph, the analyst, researcher, trader and risk agents, the LLM client layer and most of the market-data fetchers are their work.
+`tradingagents/` is a fork of [TradingAgents](https://github.com/TauricResearch/TradingAgents) by Tauric Research (Yijia Xiao, Edward Sun, Di Luo and Wei Wang; [arXiv:2412.20138](https://arxiv.org/abs/2412.20138)), taken in May 2026 and released under the Apache License 2.0. The multi-agent graph, the analyst, researcher, trader and risk agents, the LLM client layer and most of the market-data fetchers are their work. Files changed from the original carry a notice on their first line.
 
 Changes made to the fork here:
 

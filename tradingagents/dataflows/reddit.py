@@ -1,3 +1,4 @@
+# Modified for Pallisade Research by Emil Fabel, 2026. Original: TradingAgents (Apache-2.0).
 """Reddit search fetcher for ticker-specific discussion posts.
 
 Uses Reddit's public JSON endpoints (``reddit.com/r/{sub}/search.json``)

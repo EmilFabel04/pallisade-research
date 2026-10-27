@@ -1,3 +1,4 @@
+# Modified for Pallisade Research by Emil Fabel, 2026. Original: TradingAgents (Apache-2.0).
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from tradingagents.agents.utils.agent_utils import (
     build_instrument_context,
